@@ -375,7 +375,7 @@ test("first open offers GitHub CLI sign-in and detects enterprise, organization,
   });
   await page.clock.install();
   await page.goto(entry.url);
-  const signIn = page.getByRole("button", { name: "Sign in with GitHub CLI", exact: true });
+  const signIn = page.getByRole("button", { name: "Log into CLI", exact: true });
   await expect(signIn).toBeVisible();
   await expect(page.locator("#profile-signin")).toContainText("admin:enterprise");
   await expect(page.locator("#profile-summary")).toContainText("Your Enterprise: Sign-in required");
@@ -394,6 +394,21 @@ test("first open offers GitHub CLI sign-in and detects enterprise, organization,
   await expect(page.locator("#profile-signin")).toBeHidden();
   await expect(page.locator("#profile-summary a").nth(0)).toHaveText("Your Enterprise: ghuniverse1874-ea76");
   expect(discoveries).toBe(1);
+});
+
+test("failed sign-in checks and missing lab enterprises still offer the green Log into CLI button", async ({ page }) => {
+  await page.route("**/api/auth/status", (route) => route.fulfill({ status: 500, json: { message: "Status unavailable." } }));
+  await page.goto(entry.url);
+  const login = page.getByRole("button", { name: "Log into CLI", exact: true });
+  await expect(login).toBeVisible();
+  await expect(login).toHaveClass(/btn-primary/);
+  await page.unroute("**/api/auth/status");
+  await page.route("**/api/auth/status", (route) => route.fulfill({ json: { status: "ready", account: "octocat", missingScopes: [], message: "GitHub CLI is signed in as @octocat." } }));
+  await page.route("**/api/profile/discover", (route) => route.fulfill({ json: { profile: null, error: { code: "not-found", message: "No enterprise matching ghuniverse1874- was found for this GitHub CLI account." } } }));
+  await page.getByRole("button", { name: "Check again", exact: true }).click();
+  await expect(page.locator("#profile-detection-error")).toContainText("No enterprise matching");
+  await expect(login).toBeVisible();
+  await expect(login).toHaveClass(/btn-primary/);
 });
 
 test("signed-in accounts without admin scopes are offered a scope refresh", async ({ page }) => {

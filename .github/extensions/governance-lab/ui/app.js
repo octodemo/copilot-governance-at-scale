@@ -730,22 +730,27 @@ function signInMarkup() {
   const button = (mode, label, primary = false) => `<button class="btn${primary ? " btn-primary" : ""}" type="button" data-sign-in="${mode}">${label}</button>`;
   const check = `<button id="profile-signin-check" class="btn" type="button">Check again</button>`;
   const status = authState?.status;
+  const login = button("login", "Log into CLI", true);
+  const purpose = "Sign-in opens a terminal and your browser, and requests the <code>admin:enterprise</code> and <code>admin:org</code> scopes.";
   let intro, actions;
   if (wrongAccount) {
-    intro = "If this is not your lab account, sign in to GitHub CLI with the account that administers your lab enterprise.";
-    actions = button("login", "Sign in with a different account");
+    intro = `If this is not your lab account, log into GitHub CLI with the account that administers your lab enterprise. ${purpose}`;
+    actions = login;
   } else if (status === "missing-scopes") {
-    intro = `${html(authState.message)} Grant them to detect your lab enterprise, organization, and repository, or sign in with your lab account instead.`;
+    intro = `${html(authState.message)} Grant them to detect your lab enterprise, organization, and repository, or log in with your lab account instead.`;
     actions = `${button("refresh", "Grant admin scopes", true)}${button("login", "Use a different account")}${check}`;
   } else if (status === "ready" && signInPending) {
     intro = "Complete the sign-in for your lab account in the terminal and browser.";
     actions = check;
-  } else if (status === "signed-out") {
-    intro = "Sign in to GitHub CLI with your lab account so the workshop can detect your enterprise, organization, and repository. Sign-in opens a terminal and your browser, and requests the <code>admin:enterprise</code> and <code>admin:org</code> scopes.";
-    actions = `${button("login", "Sign in with GitHub CLI", true)}${check}`;
-  } else {
-    intro = html(authState?.message ?? "GitHub CLI sign-in status is unknown.");
+  } else if (status === "gh-missing") {
+    intro = html(authState.message);
     actions = check;
+  } else if (status === "signed-out") {
+    intro = `Log into GitHub CLI with your lab account so the workshop can detect your enterprise, organization, and repository. ${purpose}`;
+    actions = `${login}${check}`;
+  } else {
+    intro = `${html(authState?.message ?? "GitHub CLI sign-in status is unknown.")} Log into GitHub CLI with your lab account to detect your enterprise, organization, and repository. ${purpose}`;
+    actions = `${login}${check}`;
   }
   const progress = signInError ? html(signInError) :
     signInPending ? "Waiting for sign-in. Finish it in the terminal and browser; the one-time code is copied to your clipboard. Detection starts automatically." :
