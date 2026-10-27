@@ -1,0 +1,827 @@
+{
+  "schemaVersion": 1,
+  "policies": [
+    {
+      "id": "context.agent-skills",
+      "name": "Reusable task context",
+      "governanceCategory": "context",
+      "scope": "repository",
+      "requiredPermissions": "Maintainer authorized to review proposed skills; no installation in this walkthrough.",
+      "supportedSurfaces": ["Copilot app, CLI, cloud agent, code review and supported IDE agent modes; locations and versions vary."],
+      "location": "Project skill folders such as .github/skills; surface-specific personal skill locations",
+      "workshopSuitability": "reference-only",
+      "prerequisites": ["Identify a repeatable task and review the skill's instructions, scripts and resources."],
+      "knownLimitations": ["Personal skills are not automatically available to cloud workflows.", "A skill is not an access-control policy; inspect scripts before execution."],
+      "releaseStatus": "Support varies by client and version.",
+      "propagation": "Proposal only; no skill is installed or executed.",
+      "documentation": [{"label": "Agent skills", "url": "https://docs.github.com/en/enterprise-cloud@latest/copilot/concepts/customizations/agent-skills"}]
+    },
+    {
+      "id": "context.external-context",
+      "name": "External knowledge source requirements",
+      "governanceCategory": "context",
+      "scope": "client",
+      "requiredPermissions": "Source owner and tool administrator for later deployment; inspection only in this lab.",
+      "supportedSurfaces": ["Supported MCP clients; separate repository configuration for cloud agent and code review."],
+      "location": "Source access review; enterprise managed-settings.json; repository Settings > Copilot > MCP servers",
+      "workshopSuitability": "reference-only",
+      "prerequisites": ["Name the source, needed information, owner, authentication and minimum tool operations."],
+      "knownLimitations": ["Built-in default MCP servers are allowed before client allowlist evaluation.", "Client-managed restrictions do not replace repository cloud-agent MCP configuration.", "Repository MCP settings are shared with code review; configured tools can run autonomously.", "Context requirements do not replace Agent Governance tool controls."],
+      "releaseStatus": "Support depends on the client and mechanism.",
+      "propagation": "Proposal only; no connections, credentials or settings are changed.",
+      "documentation": [
+        {"label": "MCP governance", "url": "https://docs.github.com/en/enterprise-cloud@latest/copilot/concepts/enterprise/mcp-management"},
+        {"label": "Client allowlists", "url": "https://docs.github.com/en/enterprise-cloud@latest/copilot/how-tos/administer-copilot/manage-mcp-usage/configure-enterprise-allowlist"},
+        {"label": "Repository MCP configuration", "url": "https://docs.github.com/en/enterprise-cloud@latest/copilot/how-tos/copilot-on-github/customize-copilot/configure-mcp-servers"}
+      ]
+    },
+    {
+      "id": "context.shared-knowledge",
+      "name": "Shared knowledge and Copilot Spaces",
+      "governanceCategory": "context",
+      "scope": "organization",
+      "requiredPermissions": "Access to an existing example; Space administrators manage sharing and editors manage content.",
+      "supportedSurfaces": ["Copilot Chat on GitHub; IDE access through GitHub MCP has its own setup requirements."],
+      "location": "Copilot Spaces > Organizations; an existing Space's Share control",
+      "workshopSuitability": "reference-only",
+      "prerequisites": ["Named source owners and an intended audience; no uploads or sharing changes in this lab."],
+      "knownLimitations": ["Space access does not grant access to linked private repositories.", "Review uploaded files and pasted text for the Space's audience; do not treat copies as linked-source permissions.", "Organization-owned and personal Spaces have different sharing options.", "Eligibility follows the user's Copilot seat source; a disabled owning organization's policy alone does not block creation by users eligible through another organization."],
+      "releaseStatus": "See Spaces availability for the active subscription.",
+      "propagation": "Linked GitHub sources stay current as they change; assign maintenance for uploaded or pasted copies.",
+      "documentation": [
+        {"label": "Spaces and source access", "url": "https://docs.github.com/en/enterprise-cloud@latest/copilot/concepts/prompting-and-context/spaces"},
+        {"label": "Space creation and source selection", "url": "https://docs.github.com/en/enterprise-cloud@latest/copilot/how-tos/copilot-on-github/customize-copilot/copilot-spaces/create-copilot-spaces"},
+        {"label": "Sharing and roles", "url": "https://docs.github.com/en/enterprise-cloud@latest/copilot/how-tos/copilot-on-github/customize-copilot/copilot-spaces/collaborate-with-others"}
+      ]
+    },
+    {
+      "id": "context.memory",
+      "name": "Copilot Memory governance",
+      "governanceCategory": "context",
+      "scope": "enterprise",
+      "requiredPermissions": "Enterprise or organization administrator for feature policy and owned user-preference management; repository administrator for repository facts.",
+      "supportedSurfaces": ["Copilot cloud agent, code review, CLI and agentic autofix. Code review uses repository facts only."],
+      "location": "Enterprise AI controls > Copilot > Features & clients; organization Settings > Copilot > Policies; repository Settings > Copilot > Memory",
+      "workshopSuitability": "reference-only",
+      "prerequisites": ["Identify subscription sources, eligible users, data-handling requirements and review/deletion owners."],
+      "knownLimitations": ["Enabled per user, not per repository; repository facts remain scoped to their repository.", "Managed subscriptions require administrator enablement, then users can opt out. Multiple organization licenses use the most restrictive setting.", "Business and Enterprise personal preferences are owned by the active billing entity.", "Unused entries are deleted after 28 days; successful validation and use may reset the timer. This is not a configurable retention promise.", "This lab does not enable Memory, export personal data or delete entries."],
+      "releaseStatus": "Public preview; subject to change.",
+      "propagation": "Inspection only; this walkthrough makes no policy or record changes.",
+      "documentation": [
+        {"label": "Memory behavior, ownership and retention", "url": "https://docs.github.com/en/enterprise-cloud@latest/copilot/concepts/prompting-and-context/copilot-memory"},
+        {"label": "Memory administrator controls", "url": "https://docs.github.com/en/enterprise-cloud@latest/copilot/how-tos/use-copilot-agents/copilot-memory/manage-as-administrator"}
+      ]
+    },
+    {
+      "id": "context.quality",
+      "name": "Context quality and maintenance",
+      "governanceCategory": "context",
+      "scope": "repository",
+      "requiredPermissions": "Context asset owner and reviewers; no administration changes in this walkthrough.",
+      "supportedSurfaces": ["Instructions, skills and shared context on their supported surfaces; not a universal enforced quality setting."],
+      "location": "Repository guidance and shared source review process",
+      "workshopSuitability": "reference-only",
+      "prerequisites": ["Representative task, authoritative sources and expected results."],
+      "knownLimitations": ["Instruction adherence is non-deterministic and requires output review.", "Spaces searches attached repositories for relevant content; individual attached files use context-window space on every query.", "Context size alone does not establish quality, security or a billing saving.", "CM-LAB evaluates one repository-instructions comparison, not every context mechanism."],
+      "releaseStatus": "Workshop practice, not a product feature release.",
+      "propagation": "Review and retest after relevant source changes.",
+      "documentation": [
+        {"label": "Effective instructions", "url": "https://docs.github.com/en/enterprise-cloud@latest/copilot/concepts/prompting-and-context/custom-instructions"},
+        {"label": "Source selection in Spaces", "url": "https://docs.github.com/en/enterprise-cloud@latest/copilot/how-tos/copilot-on-github/customize-copilot/copilot-spaces/create-copilot-spaces"},
+        {"label": "Codebase standards and safeguards", "url": "https://docs.github.com/en/enterprise-cloud@latest/copilot/tutorials/roll-out-at-scale/govern-at-scale/maintain-codebase-standards"}
+      ]
+    },
+    {
+      "id": "context.repository-instructions",
+      "name": "Repository-wide engineering instructions",
+      "governanceCategory": "context",
+      "scope": "repository",
+      "requiredPermissions": "Authorized contributor able to edit the prepared repository instructions.",
+      "supportedSurfaces": ["The primary exercise uses VS Code Copilot Chat with instruction files enabled; support differs by client and feature."],
+      "location": ".github/copilot-instructions.md in the sample repository",
+      "workshopSuitability": "hands-on",
+      "prerequisites": ["A prepared non-sensitive coding task and agreed engineering standards.", "Confirm instructions are enabled in the chosen client."],
+      "knownLimitations": ["Instructions guide behavior but are not security boundaries; they do not grant or restrict repository permissions.", "AI responses are non-deterministic and may not always follow instructions in the same way.", "In VS Code Chat, inspect response References for the instruction file; separately review the generated changes."],
+      "releaseStatus": "No blanket release-status claim; check support for the selected client.",
+      "propagation": "Saved instructions are available for use; the lab repeats the task in a fresh session.",
+      "documentation": [
+        {"label": "Repository instructions in your IDE", "url": "https://docs.github.com/en/enterprise-cloud@latest/copilot/how-tos/copilot-in-your-ide/customize-copilot/configure-custom-instructions/add-repository-instructions-in-your-ide"},
+        {"label": "Custom instructions and non-determinism", "url": "https://docs.github.com/en/enterprise-cloud@latest/copilot/concepts/prompting-and-context/custom-instructions"}
+      ]
+    },
+    {
+      "id": "context.advanced-instructions",
+      "name": "Optional instruction scopes",
+      "governanceCategory": "context",
+      "scope": "repository",
+      "requiredPermissions": "Authorized repository contributor; organization owner for organization instructions.",
+      "supportedSurfaces": ["Path-specific and AGENTS.md support varies by feature; check the linked guides.", "Organization instructions support Chat, code review and cloud agent on GitHub.com."],
+      "location": ".github/instructions/NAME.instructions.md; AGENTS.md; organization Settings > Copilot > Custom instructions",
+      "workshopSuitability": "reference-only",
+      "prerequisites": ["Agree ownership and avoid conflicting instructions before extending the shared baseline."],
+      "knownLimitations": ["Path-specific files use applyTo glob patterns; matching repository-wide instructions also apply.", "On GitHub.com, path-specific instructions are supported for cloud agent and code review, not every feature.", "AGENTS.md is not supported by all Copilot features. In VS Code, support outside the workspace root is turned off by default.", "Organization instructions are not a universal IDE policy. These optional references are not configured by the primary lab."],
+      "releaseStatus": "Support is client- and feature-specific; no blanket release-status claim.",
+      "propagation": "No fixed propagation duration asserted for these reference-only scopes.",
+      "documentation": [
+        {"label": "Instruction support by client and feature", "url": "https://docs.github.com/en/enterprise-cloud@latest/copilot/reference/custom-instructions-support"},
+        {"label": "Path-specific instructions and AGENTS.md in IDEs", "url": "https://docs.github.com/en/enterprise-cloud@latest/copilot/how-tos/copilot-in-your-ide/customize-copilot/configure-custom-instructions/add-repository-instructions-in-your-ide"},
+        {"label": "Organization instructions and supported surfaces", "url": "https://docs.github.com/en/enterprise-cloud@latest/copilot/how-tos/copilot-on-github/customize-copilot/add-custom-instructions/add-organization-instructions"}
+      ]
+    },
+    {
+      "id": "context.repository-access",
+      "name": "Repository data-access restrictions",
+      "governanceCategory": "context",
+      "scope": "repository",
+      "requiredPermissions": "Repository administrator to review or adjust teams and people with access.",
+      "supportedSurfaces": ["Repository access for teams and people; distinct from Copilot license and agent availability policies."],
+      "location": "Repository Settings -> Collaborators & teams -> Manage access",
+      "workshopSuitability": "reference-only",
+      "prerequisites": ["Review the repository's authorized teams, people and role sources with its administrator."],
+      "knownLimitations": ["Instructions are preferences, not permission changes; maintain actual repository access restrictions.", "This lab records a protection proposal only and does not change permissions or prove sensitive data is inaccessible."],
+      "releaseStatus": "No preview claim made for this reference.",
+      "propagation": "No timing guarantee asserted; permissions are not changed in this lab.",
+      "documentation": [
+        {"label": "Manage teams and people with repository access", "url": "https://docs.github.com/en/enterprise-cloud@latest/repositories/managing-your-repositorys-settings-and-features/managing-repository-settings/managing-teams-and-people-with-access-to-your-repository"},
+        {"label": "Instructions customize responses, not permissions", "url": "https://docs.github.com/en/enterprise-cloud@latest/copilot/concepts/prompting-and-context/custom-instructions"}
+      ]
+    },
+    {
+      "id": "context.content-exclusion",
+      "name": "Supported content exclusions",
+      "governanceCategory": "context",
+      "scope": "client",
+      "requiredPermissions": "Repository administrators, organization owners or enterprise owners configure exclusions.",
+      "supportedSurfaces": ["Copilot Business and Enterprise: consult the current client and mode support matrix.", "VS Code inline suggestions and Chat are supported; Edit and Agent modes in VS Code and other editors are not."],
+      "location": "Repository Settings -> Copilot -> Content exclusion; Organization Settings -> Copilot -> Content exclusion",
+      "workshopSuitability": "reference-only",
+      "prerequisites": ["Identify the actual client and mode and confirm policy coverage before relying on exclusions."],
+      "knownLimitations": ["Do not assume exclusions protect every agent or Copilot client; check the current matrix for the target surface.", "IDE-provided semantic information can indirectly include information from excluded files.", "Exclusions do not apply to symlinks or repositories on remote filesystems.", "This exercise does not configure exclusions or replace repository access restrictions."],
+      "releaseStatus": "Content exclusion on the GitHub website and GitHub Mobile is in public preview.",
+      "propagation": "No propagation test is performed in this reference-only walkthrough.",
+      "documentation": [
+        {"label": "Content exclusion support matrix and limitations", "url": "https://docs.github.com/en/enterprise-cloud@latest/copilot/concepts/security-governance-and-network-settings/content-exclusion"},
+        {"label": "Repository and organization exclusion settings", "url": "https://docs.github.com/en/enterprise-cloud@latest/copilot/how-tos/configure-content-exclusion/exclude-content-from-copilot"}
+      ]
+    },
+    {
+      "id": "agent.cloud-availability",
+      "name": "Copilot cloud agent availability",
+      "governanceCategory": "agent",
+      "scope": "enterprise",
+      "requiredPermissions": "Enterprise owner or AI manager; organization owner for repository access.",
+      "supportedSurfaces": ["Copilot cloud agent on GitHub; not a universal policy for local or third-party agents."],
+      "location": "Enterprise > AI controls > Agents > Copilot Cloud Agent; organization Settings > Copilot > Cloud agent > Repository access",
+      "workshopSuitability": "hands-on",
+      "prerequisites": ["Assigned sandbox resources and an eligible test developer with repository write access."],
+      "knownLimitations": ["Enterprise availability and repository access are separate controls. Organization repository restrictions can prevent an otherwise eligible user from using the agent.", "This exercise selects pilot organizations individually; it does not rely on custom-property selection or configure other agents."],
+      "releaseStatus": "No preview claim made for this exercise.",
+      "propagation": "No fixed propagation duration established from reviewed sources; inspect actual policy and developer availability.",
+      "documentation": [
+        {"label": "Enable cloud agent for selected organizations", "url": "https://docs.github.com/en/enterprise-cloud@latest/copilot/how-tos/administer-copilot/manage-for-enterprise/manage-agents/enable-copilot-cloud-agent"},
+        {"label": "Enterprise policy states including organization-admin delegation", "url": "https://docs.github.com/en/enterprise-cloud@latest/rest/copilot/copilot-coding-agent-management"},
+        {"label": "Enterprise agent management and roles", "url": "https://docs.github.com/en/enterprise-cloud@latest/copilot/concepts/enterprise/agent-management"},
+        {"label": "Organization repository restrictions", "url": "https://docs.github.com/en/enterprise-cloud@latest/copilot/how-tos/administer-copilot/manage-for-organization/add-copilot-cloud-agent"}
+      ]
+    },
+    {
+      "id": "agent.repository-safeguards",
+      "name": "Cloud agent permissions and human review",
+      "governanceCategory": "agent",
+      "scope": "repository",
+      "requiredPermissions": "Repository write access to trigger the agent; appropriate owners to inspect policy.",
+      "supportedSurfaces": ["Cloud agent sessions and pull requests in the working repository."],
+      "location": "Working repository branch protection, rulesets, checks, session and pull request",
+      "workshopSuitability": "hands-on",
+      "prerequisites": ["A small task in the assigned test repository and existing safeguards; no bypass changes."],
+      "knownLimitations": ["The agent is subject to branch protection and required checks. Incompatible rules, such as author restrictions, can block access even when the agent is enabled.", "The agent can push only to its working branch. Draft PRs require human review and merging; enabling the agent does not approve its output.", "Actions workflow approval is required by default but can be configured to run automatically. Inspect the actual behavior; do not assume every run pauses.", "The person who requested a Copilot PR cannot supply its required approval. Review and test generated changes."],
+      "releaseStatus": "No blanket release-status claim.",
+      "propagation": "No timing guarantee; inspect the actual session or PR outcome.",
+      "documentation": [
+        {"label": "Cloud agent safeguards and permissions", "url": "https://docs.github.com/en/enterprise-cloud@latest/copilot/concepts/security-governance-and-network-settings/risks-and-mitigations"},
+        {"label": "Repository compatibility", "url": "https://docs.github.com/en/enterprise-cloud@latest/copilot/concepts/copilot-surfaces/copilot-on-github"},
+        {"label": "Human review and workflow approval", "url": "https://docs.github.com/en/enterprise-cloud@latest/copilot/how-tos/copilot-on-github/use-copilot-agents/review-copilot-output"},
+        {"label": "Workflow approval and validation-tool settings", "url": "https://docs.github.com/en/enterprise-cloud@latest/copilot/how-tos/use-copilot-agents/cloud-agent/configuring-agent-settings"},
+        {"label": "Required reviews, code owners and bypass rules", "url": "https://docs.github.com/en/enterprise-cloud@latest/repositories/configuring-branches-and-merges-in-your-repository/managing-rulesets/available-rules-for-rulesets"},
+        {"label": "Monitoring and impact planning", "url": "https://docs.github.com/en/enterprise-cloud@latest/copilot/tutorials/roll-out-at-scale/measure-copilot-impact"}
+      ]
+    },
+    {
+      "id": "agent.cloud-mcp",
+      "name": "Cloud agent external tools",
+      "governanceCategory": "agent",
+      "scope": "repository",
+      "requiredPermissions": "Enterprise policy administrator; repository administrator for repository MCP configuration.",
+      "supportedSurfaces": ["Cloud agent MCP tools in repository settings and custom agent profiles; repository MCP settings also serve Copilot code review."],
+      "location": "Enterprise > AI controls > MCP; repository Settings > Copilot > MCP servers",
+      "workshopSuitability": "reference-only",
+      "prerequisites": ["Review each server, required tools and credential scope before any later configuration."],
+      "knownLimitations": ["MCP Registry URL and Restrict MCP access to registry servers do not apply to cloud agent. Inspect cloud-agent MCP policy and configuration separately.", "Configured cloud-agent tools run autonomously without per-tool human approval. Allowlist only necessary tools, preferably read-only; do not add tools or credentials in this lab.", "GitHub and Playwright MCP servers are built in. By default, GitHub MCP has read-only access to the current repository and Playwright accesses the agent's local web resources; broader configuration needs separate review.", "Cloud agent supports MCP tools, not MCP resources or prompts, and does not support remote MCP servers using OAuth.", "The enterprise policy is MCP servers in Copilot; the organization setup uses MCP servers on GitHub.com. Inspect the policy for the intended surface."],
+      "releaseStatus": "No blanket release-status claim.",
+      "propagation": "No fixed propagation duration established; this lab records a proposal only.",
+      "documentation": [
+        {"label": "Enterprise MCP policy and registry exclusions", "url": "https://docs.github.com/en/enterprise-cloud@latest/copilot/how-tos/administer-copilot/manage-for-enterprise/manage-agents/enable-copilot-cloud-agent"},
+        {"label": "Organization MCP policy wording", "url": "https://docs.github.com/en/enterprise-cloud@latest/copilot/how-tos/administer-copilot/manage-for-organization/add-copilot-cloud-agent"},
+        {"label": "Repository MCP configuration and tool selection", "url": "https://docs.github.com/en/enterprise-cloud@latest/copilot/how-tos/copilot-on-github/customize-copilot/configure-mcp-servers"},
+        {"label": "Default cloud agent MCP servers", "url": "https://docs.github.com/en/enterprise-cloud@latest/copilot/concepts/customizations/mcp"}
+      ]
+    },
+    {
+      "id": "agent.code-review",
+      "name": "Copilot code review coverage and approvals",
+      "governanceCategory": "agent",
+      "scope": "organization",
+      "requiredPermissions": "Enterprise owners for enterprise policy; organization and repository administrators for their settings.",
+      "supportedSurfaces": ["Copilot code review on GitHub."],
+      "location": "Enterprise AI controls; organization and repository Copilot Code review settings; branch rulesets",
+      "workshopSuitability": "reference-only",
+      "prerequisites": ["Identify intended users, repositories, branches and human review requirements."],
+      "knownLimitations": ["Availability, automatic requests, effort level and approval counting are separate controls.", "Organization and repository settings include review effort for automatic reviews. Personal review effort applies to reviews the user requests.", "Copilot approvals are a public preview with enterprise, organization and repository controls. Inspect without weakening human merge requirements.", "Financial ownership belongs to Billing & Cost Control."],
+      "releaseStatus": "Copilot approvals are in public preview.",
+      "propagation": "Inspect effective settings before planning a review trial.",
+      "documentation": [
+        {"label": "Review coverage, organization effort and approval controls", "url": "https://docs.github.com/en/enterprise-cloud@latest/copilot/how-tos/copilot-on-github/set-up-copilot/configure-code-review"},
+        {"label": "Enterprise code review availability", "url": "https://docs.github.com/en/enterprise-cloud@latest/copilot/how-tos/administer-copilot/manage-for-enterprise/manage-agents/enable-copilot-code-review"},
+        {"label": "Automatic review triggers and independent settings", "url": "https://docs.github.com/en/enterprise-cloud@latest/copilot/concepts/agent-capabilities/agent-powered-workflows-and-operations/code-review"}
+      ]
+    },
+    {
+      "id": "agent.runners",
+      "name": "Cloud agent and code review runners",
+      "governanceCategory": "agent",
+      "scope": "organization",
+      "requiredPermissions": "Organization owner for defaults and repository override authority; repository administrators for repository configuration.",
+      "supportedSurfaces": ["Copilot cloud agent and Copilot code review; compatibility differs by workload."],
+      "location": "Organization Copilot Cloud agent and Runner type settings; repository setup workflows",
+      "workshopSuitability": "reference-only",
+      "prerequisites": ["Identify build, network and capacity requirements and the infrastructure owner."],
+      "knownLimitations": ["The organization runner default applies to cloud agent and code review; repository overrides depend on organization policy.", "Code review self-hosting supports ARC only and requires Ubuntu x64 Linux runners.", "Code review uses copilot-code-review.yml, falling back to copilot-setup-steps.yml when absent.", "A runner selection does not establish network isolation or credential scope."],
+      "releaseStatus": "Check current availability and compatibility for the intended runner and workload before rollout.",
+      "propagation": "Validate the environment in a later controlled session; no runners are provisioned here.",
+      "documentation": [
+        {"label": "Organization runner defaults and overrides", "url": "https://docs.github.com/en/enterprise-cloud@latest/copilot/how-tos/administer-copilot/manage-for-organization/configure-runner-for-coding-agent"},
+        {"label": "Code review runner compatibility", "url": "https://docs.github.com/en/enterprise-cloud@latest/copilot/how-tos/copilot-on-github/set-up-copilot/configure-runners"}
+      ]
+    },
+    {
+      "id": "agent.firewall",
+      "name": "Cloud agent and code review internet access",
+      "governanceCategory": "agent",
+      "scope": "organization",
+      "requiredPermissions": "Organization owners and repository administrators for their respective controls.",
+      "supportedSurfaces": ["Separate cloud-agent and code-review firewall sections."],
+      "location": "Organization or repository Settings > Copilot > Internet access",
+      "workshopSuitability": "reference-only",
+      "prerequisites": ["List required destinations and owners of repository exceptions."],
+      "knownLimitations": ["Organization and repository allowances combine; repositories cannot delete organization allowances.", "The firewall applies to agent-started Bash processes inside the Actions appliance, not directly to MCP or setup-step processes.", "The firewall is not a comprehensive defense against data exfiltration and does not govern local client isolation."],
+      "releaseStatus": "Check current availability for cloud agent and code review separately before rollout.",
+      "propagation": "Inspect existing settings only; no network probes in this walkthrough.",
+      "documentation": [
+        {"label": "Firewall settings and limitations", "url": "https://docs.github.com/en/enterprise-cloud@latest/copilot/how-tos/copilot-on-github/customize-copilot/customize-the-firewall"}
+      ]
+    },
+    {
+      "id": "agent.credentials",
+      "name": "Agents secrets and variables",
+      "governanceCategory": "agent",
+      "scope": "repository",
+      "requiredPermissions": "Repository administrator or organization owner for the respective scope.",
+      "supportedSurfaces": ["Copilot cloud agent environment and its MCP servers."],
+      "location": "Organization or repository Settings > Secrets and variables > Agents",
+      "workshopSuitability": "reference-only",
+      "prerequisites": ["Identify the resource, least-required permissions and credential owner without recording secret values."],
+      "knownLimitations": ["Agents entries are distinct from Actions, Codespaces and Dependabot secrets and variables.", "Repository values override same-named organization values. Organization entries can be scoped to selected repositories.", "COPILOT_MCP_ entries are only available to MCP servers; other Agents entries are exposed as environment variables.", "Data classification remains in Context Management; operational resource access is covered here."],
+      "releaseStatus": "Check current availability for the intended organization and repository before rollout.",
+      "propagation": "A name-and-scope inspection does not validate authentication.",
+      "documentation": [
+        {"label": "Agents credentials and repository scope", "url": "https://docs.github.com/en/enterprise-cloud@latest/copilot/how-tos/copilot-on-github/customize-copilot/customize-cloud-agent/configure-secrets-and-variables"}
+      ]
+    },
+    {
+      "id": "agent.custom-agents",
+      "name": "Enterprise custom-agent publishing ownership",
+      "governanceCategory": "agent",
+      "scope": "enterprise",
+      "requiredPermissions": "Enterprise owners and delegated AI managers as appropriate; ruleset bypass authority governs merges.",
+      "supportedSurfaces": ["Enterprise custom-agent profiles and their governance repository."],
+      "location": "Enterprise AI controls > Agents; designated .github-private repository",
+      "workshopSuitability": "reference-only",
+      "prerequisites": ["Identify the source organization, publishing owners and review process."],
+      "knownLimitations": ["The generated protection ruleset can also restrict organization-level custom-agent edits; review its target before creating it.", "Profile publishing controls do not replace instruction and sensitive-data review in Context Management."],
+      "releaseStatus": "Check current availability for the intended enterprise before rollout.",
+      "propagation": "Inspect ownership and rules only; no profile publishing in this walkthrough.",
+      "documentation": [
+        {"label": "Prepare and protect enterprise custom agents", "url": "https://docs.github.com/en/enterprise-cloud@latest/copilot/how-tos/administer-copilot/manage-for-enterprise/manage-agents/prepare-for-custom-agents"},
+        {"label": "Select a governance repository", "url": "https://docs.github.com/en/enterprise-cloud@latest/copilot/how-tos/administer-copilot/manage-for-enterprise/manage-agents/create-github-private-repo"}
+      ]
+    },
+    {
+      "id": "agent.plugin-standards",
+      "name": "Managed plugin distribution",
+      "governanceCategory": "agent",
+      "scope": "client",
+      "requiredPermissions": "Administrators and AI managers responsible for managed settings.",
+      "supportedSurfaces": ["Supported clients listed per key in the managed-settings reference."],
+      "location": "copilot/managed-settings.json in the designated .github-private repository",
+      "workshopSuitability": "reference-only",
+      "prerequisites": ["Review plugin sources, publishing ownership and supported client versions."],
+      "knownLimitations": ["enabledPlugins, extraKnownMarketplaces and strictKnownMarketplaces control different aspects of distribution.", "An empty strictKnownMarketplaces list is lockdown.", "A reviewed file does not prove client receipt or enforcement."],
+      "releaseStatus": "Support is client- and key-specific.",
+      "propagation": "Confirm receipt in a later supported-client trial; no plugins are installed here.",
+      "documentation": [
+        {"label": "Plugin standards", "url": "https://docs.github.com/en/enterprise-cloud@latest/copilot/concepts/enterprise/plugin-standards"},
+        {"label": "Plugin keys and support", "url": "https://docs.github.com/en/enterprise-cloud@latest/copilot/reference/enterprise-administrators/enterprise-managed-settings"}
+      ]
+    },
+    {
+      "id": "agent.sandbox",
+      "name": "Managed local sandbox requirements",
+      "governanceCategory": "agent",
+      "scope": "client",
+      "requiredPermissions": "Managed-settings and device administrators for the chosen deployment.",
+      "supportedSurfaces": ["Copilot CLI, Copilot app and supported VS Code Agent Host sessions; not cloud agent."],
+      "location": "sandbox object in enterprise managed settings",
+      "workshopSuitability": "reference-only",
+      "prerequisites": ["Check client version, operating system and supported enforcement backend."],
+      "knownLimitations": ["Mandatory enforcement requires enabled and failIfUnavailable; allowBypass controls escape from the sandbox separately.", "The app project settings do not display the complete effective managed sandbox policy.", "Windows CLI host rules depend on programs honoring proxy settings and do not provide the same direct-connection protection as macOS and Linux.", "Remote MCP servers do not run in the local sandbox."],
+      "releaseStatus": "Client, version and host support vary.",
+      "propagation": "Propose a later allowed, blocked and unavailable-backend check; do not change the running client.",
+      "documentation": [
+        {"label": "Sandbox enforcement and host limitations", "url": "https://docs.github.com/en/enterprise-cloud@latest/copilot/reference/enterprise-administrators/enterprise-managed-settings#sandbox"}
+      ]
+    },
+    {
+      "id": "agent.computer-use",
+      "name": "Computer-use availability",
+      "governanceCategory": "agent",
+      "scope": "client",
+      "requiredPermissions": "Administrator responsible for managed client settings.",
+      "supportedSurfaces": ["Copilot CLI and the GitHub Copilot app."],
+      "location": "features.computerUse in enterprise managed settings",
+      "workshopSuitability": "reference-only",
+      "prerequisites": ["Name the application task and human approval boundaries."],
+      "knownLimitations": ["false prevents enabling computer use; true or omission leaves the choice to local settings.", "Availability does not authorize individual actions and is distinct from remote session control."],
+      "releaseStatus": "Support is key- and client-specific.",
+      "propagation": "No desktop actions or settings deployment in this walkthrough.",
+      "documentation": [
+        {"label": "Computer-use managed setting", "url": "https://docs.github.com/en/enterprise-cloud@latest/copilot/reference/enterprise-administrators/enterprise-managed-settings#featurescomputeruse"}
+      ]
+    },
+    {
+      "id": "agent.remote-control",
+      "name": "Incoming remote session control",
+      "governanceCategory": "agent",
+      "scope": "client",
+      "requiredPermissions": "Administrator responsible for settings on the hosting device.",
+      "supportedSurfaces": ["Copilot CLI, VS Code and Copilot app as listed in the support matrix; not cloud agent."],
+      "location": "remoteControl in enterprise managed settings",
+      "workshopSuitability": "reference-only",
+      "prerequisites": ["Identify the hosting device and organizations required for SSO authorization."],
+      "knownLimitations": ["Modes are disabled, requireSSO and enabled. requireSSO requires githubDotComOrganizations.", "Restricts control of sessions hosted on this device, not the user's ability to control sessions hosted elsewhere.", "Separate from computer-use availability."],
+      "releaseStatus": "Support is key- and client-specific.",
+      "propagation": "No remote connection or policy deployment in this walkthrough.",
+      "documentation": [
+        {"label": "Remote-control policy", "url": "https://docs.github.com/en/enterprise-cloud@latest/copilot/reference/enterprise-administrators/enterprise-managed-settings#remotecontrol"}
+      ]
+    },
+    {
+      "id": "agent.partner-agents",
+      "name": "Third-party coding agents and agent apps",
+      "governanceCategory": "agent",
+      "scope": "enterprise",
+      "requiredPermissions": "Enterprise and organization policy administrators; app installers and authorizing users for their respective actions.",
+      "supportedSurfaces": ["Third-party agents and agent apps on GitHub; not a policy for local VS Code agents."],
+      "location": "Enterprise and organization agent policies; GitHub App installation and user authorization",
+      "workshopSuitability": "reference-only",
+      "prerequisites": ["Assess the provider, requested permissions, repository scope and connected services."],
+      "knownLimitations": ["Cloud-agent availability alone does not enable all partner agents.", "Agent apps require installation and enabled agent features; enterprise-owned organizations also require the Agent apps policy.", "First use of an agent app requires user OAuth authorization, distinct from installation."],
+      "releaseStatus": "Third-party coding agents and agent apps are public previews.",
+      "propagation": "No installation, authorization or agent run in this walkthrough.",
+      "documentation": [
+        {"label": "Third-party coding agents", "url": "https://docs.github.com/en/enterprise-cloud@latest/copilot/concepts/agent-capabilities/about-agents/about-third-party-coding-agents"},
+        {"label": "Agent apps", "url": "https://docs.github.com/en/enterprise-cloud@latest/copilot/concepts/agent-capabilities/about-agents/agent-apps"},
+        {"label": "Enterprise partner-agent policies", "url": "https://docs.github.com/en/enterprise-cloud@latest/copilot/how-tos/administer-copilot/manage-for-enterprise/manage-agents/enable-copilot-cloud-agent"}
+      ]
+    },
+    {
+      "id": "agent.automations",
+      "name": "Cloud-agent scheduled and event-triggered automations",
+      "governanceCategory": "agent",
+      "scope": "repository",
+      "requiredPermissions": "Repository write access to create automations; organization owners for Allow automations.",
+      "supportedSurfaces": ["Copilot cloud-agent automations in private or internal repositories."],
+      "location": "Organization Copilot Cloud agent > Allow automations; repository Agents > Automations",
+      "workshopSuitability": "reference-only",
+      "prerequisites": ["Cloud agent and automations allowed; a named owner, trigger and minimal tool set."],
+      "knownLimitations": ["Each automation acts in one repository. Public repositories are not supported.", "Definitions are creator-private, including from repository administrators, and are not stored in Git.", "Sessions and logs are visible to people with repository access; prompts must not contain secrets.", "Trigger permission is separate from operation approval. Events from users without write access are ignored by default."],
+      "releaseStatus": "Check current availability for the intended private or internal repository before rollout.",
+      "propagation": "No scheduled or event-driven work is created in this walkthrough.",
+      "documentation": [
+        {"label": "Automation scope and visibility", "url": "https://docs.github.com/en/enterprise-cloud@latest/copilot/concepts/agent-capabilities/agent-powered-workflows-and-operations/about-automations"},
+        {"label": "Organization automation control", "url": "https://docs.github.com/en/enterprise-cloud@latest/copilot/how-tos/administer-copilot/manage-for-organization/add-copilot-cloud-agent"}
+      ]
+    },
+    {
+      "id": "user.model-presets",
+      "name": "Default model and Auto routing tier",
+      "governanceCategory": "user",
+      "scope": "client",
+      "requiredPermissions": "Restrict edits to the server-managed settings file to administrators and AI managers, as recommended in the getting-started guide.",
+      "supportedSurfaces": [
+        "model: Copilot CLI, VS Code, the GitHub Copilot app, and Copilot cloud agent; the supported-key matrix marks JetBrains IDEs as not supported.",
+        "autoTier: the supported-key matrix lists Copilot CLI and VS Code, and marks the GitHub Copilot app, Copilot cloud agent, and JetBrains IDEs as not supported."
+      ],
+      "location": "For a server-managed deployment: copilot/managed-settings.json in the designated .github-private repository.",
+      "workshopSuitability": "hands-on",
+      "prerequisites": [
+        "Confirm the target enterprise, affected users, and approval before publishing settings; server-managed settings apply to users licensed by the enterprise or its organizations.",
+        "Check support for each key in the selected client. autoTier requires Copilot CLI 1.0.87-0 or later, or VS Code 1.140.0 or later."
+      ],
+      "knownLimitations": [
+        "model sets the default for new conversations; users can still select a different model per conversation.",
+        "autoTier only applies when the selected model is auto; it does not select the model itself. A plain tier string locks the tier against user and repository overrides; overridable provides an overridable default.",
+        "The Auto model-selection guide says Auto tiers are available in the GitHub Copilot app, but the managed-settings supported-key matrix marks autoTier as not supported there. Managed autoTier support in the app remains unresolved; do not infer it from availability in the model picker.",
+        "Auto selects only supported models permitted by the user's plan and administrator policies; a preset does not replace model-access policies."
+      ],
+      "releaseStatus": "Support is key- and client-specific; no blanket release-status claim.",
+      "propagation": "Server-managed settings arrive within about an hour; restarting the client or signing in again triggers an immediate refresh.",
+      "documentation": [
+        {
+          "label": "Managed model and autoTier keys and client coverage",
+          "url": "https://docs.github.com/en/enterprise-cloud@latest/copilot/reference/enterprise-administrators/enterprise-managed-settings"
+        },
+        {
+          "label": "Getting started with enterprise-managed settings",
+          "url": "https://docs.github.com/en/enterprise-cloud@latest/copilot/how-tos/administer-copilot/manage-for-enterprise/use-managed-settings/get-started"
+        },
+        {
+          "label": "About Copilot auto model selection",
+          "url": "https://docs.github.com/en/enterprise-cloud@latest/copilot/concepts/models/auto-model-selection"
+        }
+      ]
+    },
+    {
+      "id": "agent.client-managed-settings",
+      "name": "Copilot app and CLI managed settings",
+      "governanceCategory": "agent",
+      "scope": "client",
+      "requiredPermissions": "Enterprise managed-settings administrator and device administrator where deployment requires one.",
+      "supportedSurfaces": ["Copilot app and Copilot CLI for the listed keys; check the reference matrix for other clients."],
+      "location": "Enterprise managed-settings.json, deployed through the supported enterprise or device mechanism",
+      "workshopSuitability": "reference-only",
+      "prerequisites": ["Identify the actual client and consult the supported-keys matrix before deployment."],
+      "knownLimitations": ["allowedMcpServers and deniedMcpServers are supported by Copilot app and CLI, not Copilot cloud agent.", "permissions.allow, permissions.ask, permissions.deny and permissions.disableBypassPermissionsMode govern supported clients, not cloud agent.", "Built-in default MCP servers are allowed before allowlist/denylist evaluation. An empty allowlist is not proof that every built-in tool is disabled.", "Client managed settings do not replace cloud agent repository MCP configuration or repository safeguards."],
+      "releaseStatus": "Support is key- and client-specific; no blanket release-status claim.",
+      "propagation": "No fixed propagation duration established; deployment is outside this exercise.",
+      "documentation": [
+        {"label": "Managed settings supported-key matrix", "url": "https://docs.github.com/en/enterprise-cloud@latest/copilot/reference/enterprise-administrators/enterprise-managed-settings"},
+        {"label": "Client MCP allowlists and built-in exceptions", "url": "https://docs.github.com/en/enterprise-cloud@latest/copilot/how-tos/administer-copilot/manage-mcp-usage/configure-enterprise-allowlist"},
+        {"label": "Registry restrictions and managed allowlists", "url": "https://docs.github.com/en/enterprise-cloud@latest/copilot/how-tos/administer-copilot/manage-mcp-usage/configure-mcp-registry"}
+      ]
+    },
+    {
+      "id": "access.organization-seats",
+      "name": "Organization Copilot access",
+      "governanceCategory": "user",
+      "scope": "organization",
+      "requiredPermissions": "Organization owner.",
+      "supportedSurfaces": ["Copilot licensing for selected organization users or teams, or all current and future organization members."],
+      "location": "Organization > Settings > Copilot > Access",
+      "workshopSuitability": "hands-on",
+      "prerequisites": ["An enabled organization and assigned test members."],
+      "knownLimitations": ["Billing starts when access is granted, not when the developer first uses Copilot.", "A successful developer response alone does not establish which license or access route was used."],
+      "releaseStatus": "No preview claim made for this exercise.",
+      "propagation": "No fixed propagation duration established from reviewed sources.",
+      "documentation": [
+        {"label": "Grant organization access", "url": "https://docs.github.com/en/enterprise-cloud@latest/copilot/how-tos/administer-copilot/manage-for-organization/manage-access/grant-access"},
+        {"label": "IDE access prerequisites", "url": "https://docs.github.com/en/enterprise-cloud@latest/copilot/how-tos/copilot-in-your-ide/set-up-copilot/install-copilot-extension"}
+      ]
+    },
+    {
+      "id": "access.enterprise-assignment",
+      "name": "Enterprise-managed Copilot licensing",
+      "governanceCategory": "user",
+      "scope": "enterprise",
+      "requiredPermissions": "Enterprise owner for this exercise.",
+      "supportedSurfaces": ["Direct assignment to enterprise users or teams; enablement of Copilot for organizations."],
+      "location": "Enterprise > Billing and licensing > Licensing > Copilot > Manage",
+      "workshopSuitability": "hands-on",
+      "prerequisites": ["An approved enterprise user, or an existing approved enterprise team and test membership.", "Review the documented prerequisites for enterprise-assigned users."],
+      "knownLimitations": ["Direct enterprise assignment is available for Copilot Business licenses.", "Enabling an organization is separate from the organization owner assigning access to its members."],
+      "releaseStatus": "No preview claim made for this exercise.",
+      "propagation": "No fixed propagation duration established from reviewed sources.",
+      "documentation": [
+        {"label": "Grant enterprise access", "url": "https://docs.github.com/en/enterprise-cloud@latest/copilot/how-tos/administer-copilot/manage-for-enterprise/manage-access/grant-access"},
+        {"label": "Enterprise access administration", "url": "https://docs.github.com/en/enterprise-cloud@latest/copilot/how-tos/administer-copilot/manage-for-enterprise/manage-access"},
+        {"label": "Enterprise teams and documented limits", "url": "https://docs.github.com/en/enterprise-cloud@latest/admin/managing-accounts-and-repositories/managing-users-in-your-enterprise/create-enterprise-teams"}
+      ]
+    },
+    {
+      "id": "access.assignment-automation",
+      "name": "Access assignment process and automation",
+      "governanceCategory": "user",
+      "scope": "enterprise",
+      "requiredPermissions": "Appropriate licensing, team and IdP administrators; review permissions for each chosen API.",
+      "supportedSurfaces": ["Custom access processes using supported APIs, scripts or GitHub Actions.", "Supported organization-team sync, or enterprise-team sync with Enterprise Managed Users."],
+      "location": "Your access-management platform and the documented GitHub team or licensing controls",
+      "workshopSuitability": "reference-only",
+      "prerequisites": ["Choose the assignment mechanism and identity setup first.", "Define any internal approval, training or policy-acceptance requirements."],
+      "knownLimitations": ["This workshop does not deploy automation or a built-in approval gate.", "Enterprise-team IdP sync requires Enterprise Managed Users; its team-size limit is 5,000.", "Personal-account organization team sync does not support IdP groups with more than 5,000 members. This is not a general organization-team size cap.", "IdP-managed team membership must be changed through the IdP, not independently through GitHub APIs.", "Enterprise-installed GitHub Apps cannot call every endpoint; confirm coverage instead of assuming full automation."],
+      "releaseStatus": "Confirm the chosen identity and API surface separately.",
+      "propagation": "No universal assignment or sync timing asserted.",
+      "documentation": [
+        {"label": "Enterprise automation components and permissions", "url": "https://docs.github.com/en/enterprise-cloud@latest/admin/concepts/enterprise-fundamentals/automations-in-your-enterprise"},
+        {"label": "Enterprise teams and EMU sync", "url": "https://docs.github.com/en/enterprise-cloud@latest/admin/managing-accounts-and-repositories/managing-users-in-your-enterprise/create-enterprise-teams"},
+        {"label": "Organization team synchronization", "url": "https://docs.github.com/en/enterprise-cloud@latest/organizations/organizing-members-into-teams/synchronizing-a-team-with-an-identity-provider-group"},
+        {"label": "EMU identity-provider groups", "url": "https://docs.github.com/en/enterprise-cloud@latest/admin/managing-iam/provisioning-user-accounts-with-scim/managing-team-memberships-with-identity-provider-groups"}
+      ]
+    },
+    {
+      "id": "access.self-serve-requests",
+      "name": "Copilot access requests",
+      "governanceCategory": "user",
+      "scope": "organization",
+      "requiredPermissions": "Organization owner to approve built-in requests.",
+      "supportedSurfaces": ["Built-in Ask admin for access requests for Copilot Business organizations.", "Custom self-service processes using the Copilot user management REST API."],
+      "location": "Organization settings > Access > Requests from members",
+      "workshopSuitability": "reference-only",
+      "prerequisites": ["Choose who approves requests and which checks run before access."],
+      "knownLimitations": ["The built-in request button is available for Copilot Business only.", "This workshop does not configure a request process."],
+      "releaseStatus": "No preview claim made for this guidance.",
+      "propagation": "No fixed propagation duration established from reviewed sources.",
+      "documentation": [
+        {"label": "Self-serve Copilot licenses", "url": "https://docs.github.com/en/enterprise-cloud@latest/copilot/tutorials/roll-out-at-scale/assign-licenses/set-up-self-serve-licenses"},
+        {"label": "Manage requests for access", "url": "https://docs.github.com/en/enterprise-cloud@latest/copilot/how-tos/administer-copilot/manage-for-organization/manage-access/manage-requests-for-access"}
+      ]
+    },
+    {
+      "id": "access.network-routing",
+      "name": "Subscription-based network routing",
+      "governanceCategory": "user",
+      "scope": "enterprise",
+      "requiredPermissions": "Corporate network or firewall administrators.",
+      "supportedSurfaces": ["Corporate firewall allowlists and blocklists for Copilot plan hostnames."],
+      "location": "Your corporate firewall; no GitHub setting.",
+      "workshopSuitability": "reference-only",
+      "prerequisites": ["Supported Copilot client versions and the other required hostnames from the allowlist reference."],
+      "knownLimitations": ["Controls which Copilot plans work on your network, not which projects users work on.", "Does not apply outside the controlled network."],
+      "releaseStatus": "No preview claim made for this guidance.",
+      "propagation": "Depends on your network change process.",
+      "documentation": [
+        {"label": "Manage network access", "url": "https://docs.github.com/en/enterprise-cloud@latest/copilot/how-tos/administer-copilot/manage-for-enterprise/manage-access/manage-network-access"},
+        {"label": "Copilot allowlist reference", "url": "https://docs.github.com/en/enterprise-cloud@latest/copilot/reference/copilot-allowlist-reference"}
+      ]
+    },
+    {
+      "id": "access.license-lifecycle",
+      "name": "Inactive users and license removal",
+      "governanceCategory": "user",
+      "scope": "organization",
+      "requiredPermissions": "Organization owner, or enterprise owner for enterprise-assigned licenses.",
+      "supportedSurfaces": ["Organization Copilot access page activity sorting and activity report.", "Copilot user management REST API seat lists and removal endpoints."],
+      "location": "Organization > Settings > Copilot > Access",
+      "workshopSuitability": "reference-only",
+      "prerequisites": ["An inactivity limit, grace period, and removal owner."],
+      "knownLimitations": ["Activity data can be up to 24 hours late.", "Organization removal does not remove access granted by an enterprise team or direct enterprise assignment."],
+      "releaseStatus": "No preview claim made for this guidance.",
+      "propagation": "Organization removal takes effect at the start of the next billing cycle.",
+      "documentation": [
+        {"label": "Remind inactive users", "url": "https://docs.github.com/en/enterprise-cloud@latest/copilot/tutorials/roll-out-at-scale/assign-licenses/remind-inactive-users"},
+        {"label": "Revoke organization access", "url": "https://docs.github.com/en/enterprise-cloud@latest/copilot/how-tos/administer-copilot/manage-for-organization/manage-access/revoke-access"},
+        {"label": "Copilot user management REST API", "url": "https://docs.github.com/en/enterprise-cloud@latest/rest/copilot/copilot-user-management"}
+      ]
+    },
+    {
+      "id": "features.ai-managers",
+      "name": "Delegated AI policy administration",
+      "governanceCategory": "user",
+      "scope": "enterprise",
+      "requiredPermissions": "An authorized administrator to create and assign the approved enterprise custom role.",
+      "supportedSurfaces": ["Nearly all enterprise AI controls through the documented AI manager custom-role approach."],
+      "location": "Enterprise > People > Enterprise roles; Enterprise teams",
+      "workshopSuitability": "reference-only",
+      "prerequisites": ["Agree the policy decision makers and review the custom-role preview."],
+      "knownLimitations": ["The documented AI manager permissions do not themselves grant Copilot access management or billing administration.", "Review requested permissions individually; this lab does not create roles or grant administrative access."],
+      "releaseStatus": "Enterprise custom roles are public preview in the reviewed guide.",
+      "propagation": "No fixed propagation duration asserted.",
+      "documentation": [
+        {"label": "Establishing AI managers and permission boundaries", "url": "https://docs.github.com/en/enterprise-cloud@latest/copilot/tutorials/roll-out-at-scale/govern-at-scale/establish-ai-managers"}
+      ]
+    },
+    {
+      "id": "models.enterprise-availability",
+      "name": "Copilot model availability",
+      "governanceCategory": "user",
+      "scope": "enterprise",
+      "requiredPermissions": "Enterprise owner; organization owners manage delegated model decisions in the organization-based experience.",
+      "supportedSurfaces": ["Model availability governed by enterprise and delegated model controls; check the intended client separately."],
+      "location": "Enterprise > AI controls > Copilot > Configure models",
+      "workshopSuitability": "reference-only",
+      "prerequisites": ["Know whether the enterprise uses organization delegation or the enterprise-teams preview."],
+      "knownLimitations": ["The enterprise-teams model-access preview deactivates organization model settings.", "Model controls and feature controls are separate settings."],
+      "releaseStatus": "Enterprise-team granular model access is an opt-in preview in the reviewed documentation.",
+      "propagation": "No fixed propagation duration established from reviewed sources.",
+      "documentation": [
+        {"label": "Default availability of features and models", "url": "https://docs.github.com/en/enterprise-cloud@latest/copilot/concepts/enterprise/default-availability"},
+        {"label": "Manage model availability", "url": "https://docs.github.com/en/enterprise-cloud@latest/copilot/how-tos/administer-copilot/manage-for-enterprise/manage-availability-of-default-models"},
+        {"label": "Govern for adoption", "url": "https://docs.github.com/en/enterprise-cloud@latest/copilot/tutorials/roll-out-at-scale/govern-at-scale/govern-for-adoption"}
+      ]
+    },
+    {
+      "id": "features.enterprise-policies",
+      "name": "Copilot feature policies",
+      "governanceCategory": "user",
+      "scope": "enterprise",
+      "requiredPermissions": "Enterprise owner; organization owners where decisions are delegated.",
+      "supportedSurfaces": ["Copilot features and clients controlled by the individual policy; do not infer universal client support."],
+      "location": "Enterprise > AI controls > Copilot > Configure features & clients",
+      "workshopSuitability": "reference-only",
+      "prerequisites": ["Identify the individual feature and intended client before changing policy."],
+      "knownLimitations": ["Policies can have different controls and supported surfaces.", "This workshop records the governance approach without changing feature settings."],
+      "releaseStatus": "Assess the chosen feature separately; no blanket release-status claim.",
+      "propagation": "No fixed propagation duration established from reviewed sources.",
+      "documentation": [
+        {"label": "Default availability of features and models", "url": "https://docs.github.com/en/enterprise-cloud@latest/copilot/concepts/enterprise/default-availability"},
+        {"label": "Manage enterprise policies", "url": "https://docs.github.com/en/enterprise-cloud@latest/copilot/how-tos/administer-copilot/manage-for-enterprise/manage-enterprise-policies"},
+        {"label": "Approval resources, clients and preview coverage", "url": "https://docs.github.com/en/enterprise-cloud@latest/copilot/tutorials/roll-out-at-scale/govern-at-scale/resources-for-approval"}
+      ]
+    },
+    {
+      "id": "observability.usage-metrics",
+      "name": "Copilot usage and adoption evidence",
+      "governanceCategory": "observability",
+      "scope": "enterprise",
+      "requiredPermissions": "Enterprise owners, billing managers or authorized users with View Enterprise Copilot Metrics for enterprise reports; organization owners or authorized users with View Organization Copilot Metrics for organization reports.",
+      "supportedSurfaces": ["Usage dashboards, code generation and impact dashboards, usage metrics APIs and NDJSON exports.", "Metrics include supported IDE, CLI and agent app activity; GitHub.com Chat and GitHub Mobile are not included in usage metrics."],
+      "location": "Enterprise > Insights > Copilot usage; usage metrics REST reference for report access.",
+      "workshopSuitability": "hands-on",
+      "prerequisites": ["The Copilot usage metrics policy must be enabled everywhere for dashboard access. The separate Copilot metrics API policy controls API access. Most rich usage breakdowns require IDE telemetry. Live report inspection needs an authorized caller and available processed data."],
+      "knownLimitations": ["Usage and output are not proof of causal business value.", "Seat management data is separate from usage reports. Individual agent app breakdowns are in APIs/NDJSON, not usage dashboards.", "Data processing and coverage must be considered; a fresh sandbox is not expected to have workshop history."],
+      "releaseStatus": "No blanket preview or general availability claim; consult the linked endpoint reference.",
+      "propagation": "Dashboard data may appear up to three full UTC days behind the current date. A settings check does not establish data collection; an unavailable report is not proof of zero activity.",
+      "documentation": [
+        {"label": "Usage metrics and coverage", "url": "https://docs.github.com/en/enterprise-cloud@latest/copilot/concepts/billing-and-usage/copilot-usage-metrics/copilot-metrics"},
+        {"label": "Dashboard access", "url": "https://docs.github.com/en/enterprise-cloud@latest/copilot/how-tos/administer-copilot/view-usage-and-adoption"},
+        {"label": "Usage metrics REST API and roles", "url": "https://docs.github.com/en/enterprise-cloud@latest/rest/copilot/copilot-usage-metrics"},
+        {"label": "Organization policy navigation", "url": "https://docs.github.com/en/enterprise-cloud@latest/copilot/how-tos/administer-copilot/manage-for-organization/manage-policies"}
+      ]
+    },
+    {
+      "id": "observability.license-data",
+      "name": "Licensed-seat data as a measurement denominator",
+      "governanceCategory": "observability",
+      "scope": "organization",
+      "requiredPermissions": "Organization owner for the linked organization seat endpoints.",
+      "supportedSurfaces": ["Copilot user management REST API seat information and assignments."],
+      "location": "Copilot user management REST reference; no direct settings URL is constructed.",
+      "workshopSuitability": "reference-only",
+      "prerequisites": ["Approved access to seat information and a consistent reporting population and time window."],
+      "knownLimitations": ["Seat count is not active usage. This exercise does not assign seats or configure financial chargeback.", "Do not add weekly unique-user counts or overlapping organization populations to infer an enterprise total."],
+      "releaseStatus": "The linked Copilot user management endpoints are documented as public preview.",
+      "propagation": "No seat changes are made by this exercise.",
+      "documentation": [
+        {"label": "License and seat API", "url": "https://docs.github.com/en/enterprise-cloud@latest/rest/copilot/copilot-user-management"},
+        {"label": "Usage attribution and separate seat data", "url": "https://docs.github.com/en/enterprise-cloud@latest/copilot/concepts/billing-and-usage/copilot-usage-metrics/copilot-metrics"}
+      ]
+    },
+    {
+      "id": "observability.agent-activity",
+      "name": "Agent sessions and audit investigation",
+      "governanceCategory": "observability",
+      "scope": "enterprise",
+      "requiredPermissions": "Use an authorized enterprise administrator for any real investigation; the fictional exercise requires no GitHub access.",
+      "supportedSurfaces": ["Enterprise AI controls agent sessions and GitHub-side agent actions in the enterprise audit log."],
+      "location": "Enterprise > AI controls > Agent sessions > View all; Enterprise > Settings > Audit log.",
+      "workshopSuitability": "hands-on",
+      "prerequisites": ["An approved investigation purpose and authorized access before reviewing real data."],
+      "knownLimitations": ["Enterprise audit logs do not include local client session prompts.", "Sample events are plain-language fictional records, not GitHub event names or an API schema.", "Session-level streaming is documented as preview with enterprise eligibility restrictions; it is not configured in this lab."],
+      "releaseStatus": "Copilot agent session streaming is public preview for Enterprise Managed Users and Enterprise Cloud with data residency in the linked monitoring guide.",
+      "propagation": "No monitoring or streaming configuration is changed.",
+      "documentation": [
+        {"label": "Monitor agent sessions", "url": "https://docs.github.com/en/enterprise-cloud@latest/copilot/how-tos/administer-copilot/manage-for-enterprise/manage-agents/monitor-agentic-activity"},
+        {"label": "Audit log coverage", "url": "https://docs.github.com/en/enterprise-cloud@latest/copilot/how-tos/administer-copilot/manage-for-enterprise/review-audit-logs"},
+        {"label": "Agent audit event fields", "url": "https://docs.github.com/en/enterprise-cloud@latest/copilot/reference/enterprise-administrators/agentic-audit-log-events"}
+      ]
+    },
+    {
+      "id": "billing.organization-billed-usage",
+      "name": "Organization billing for Copilot CLI automation and code review",
+      "governanceCategory": "billing",
+      "scope": "enterprise",
+      "requiredPermissions": "Enterprise owner; organization owner for delegated organization settings.",
+      "supportedSurfaces": ["Copilot CLI in GitHub Actions using GITHUB_TOKEN in organization-owned repositories.", "Copilot code review billing for requests associated with organization members with paid Copilot licenses."],
+      "location": "Enterprise > AI controls > Copilot > Configure features & clients; Agents > Copilot code review",
+      "workshopSuitability": "hands-on",
+      "prerequisites": ["An assigned test enterprise and organizations.", "AI credits paid usage is required for organization-billed code review."],
+      "knownLimitations": ["CLI organization billing is separate from user-authenticated CLI usage. GITHUB_TOKEN workflows in organization-owned repositories require Allow use of Copilot CLI billed to the organization.", "Organization-billed CLI usage does not count against individual user-level budgets.", "Choosing organization billing for licensed members' code reviews changes billing, not access. It applies to manually requested and automatic reviews.", "Other bot-triggered reviews and eligible reviews for users without licenses can also bill the organization; retaining member billing does not eliminate those charges.", "Organization-billed code reviews use applicable organization, cost-center, or enterprise spending controls rather than the member's ULB."],
+      "releaseStatus": "No blanket release-status claim made.",
+      "propagation": "No fixed propagation duration established from reviewed sources.",
+      "documentation": [
+        {"label": "Enterprise policy navigation", "url": "https://docs.github.com/en/enterprise-cloud@latest/copilot/how-tos/administer-copilot/manage-for-enterprise/manage-enterprise-policies"},
+        {"label": "CLI organization-billing policy", "url": "https://docs.github.com/en/enterprise-cloud@latest/copilot/how-tos/copilot-cli/use-copilot-cli-in-actions"},
+        {"label": "CLI authentication and billing", "url": "https://docs.github.com/en/enterprise-cloud@latest/copilot/concepts/agent-capabilities/agent-powered-workflows-and-operations/copilot-cli-in-github-actions"},
+        {"label": "Enterprise code-review settings", "url": "https://docs.github.com/en/enterprise-cloud@latest/copilot/how-tos/administer-copilot/manage-for-enterprise/manage-agents/enable-copilot-code-review"},
+        {"label": "Code-review billing and budgets", "url": "https://docs.github.com/en/enterprise-cloud@latest/copilot/concepts/agent-capabilities/agent-powered-workflows-and-operations/code-review"}
+      ]
+    },
+    {
+      "id": "billing.billing-managers",
+      "name": "Enterprise billing manager access",
+      "governanceCategory": "billing",
+      "scope": "enterprise",
+      "requiredPermissions": "Enterprise owner coordinating with the identity-provider administrator for Enterprise Managed Users.",
+      "supportedSurfaces": ["Enterprise People > Administrators for enterprises using personal accounts; identity-provider assignments for Enterprise Managed Users."],
+      "location": "Enterprise > People > Administrators",
+      "workshopSuitability": "reference-only",
+      "prerequisites": ["An assigned test enterprise with administrator access for a view-only walkthrough; do not invite anyone or change roles."],
+      "knownLimitations": ["Billing managers can view and manage enterprise billing settings; this is not read-only reporting access.", "An invited administrator must accept the emailed invitation before gaining access.", "Enterprise Managed Users billing managers can only be added or removed through the identity provider.", "Role assignment does not establish an internal approval process or attest that billing changes were reviewed."],
+      "releaseStatus": "No preview claim made.",
+      "propagation": "Invitation acceptance is required; no fixed propagation time asserted.",
+      "documentation": [
+        {"label": "Invite enterprise administrators", "url": "https://docs.github.com/en/enterprise-cloud@latest/admin/managing-accounts-and-repositories/managing-users-in-your-enterprise/inviting-people-to-manage-your-enterprise"},
+        {"label": "Billing manager abilities", "url": "https://docs.github.com/en/enterprise-cloud@latest/admin/managing-accounts-and-repositories/managing-roles-in-your-enterprise/abilities-of-roles"}
+      ]
+    },
+    {
+      "id": "billing.payment-methods",
+      "name": "AI credit payment methods and Azure billing",
+      "governanceCategory": "billing",
+      "scope": "enterprise",
+      "requiredPermissions": "GitHub account owner for an Azure connection, coordinating with an Azure subscription owner and tenant administrator as needed.",
+      "supportedSurfaces": ["Enterprise payment information and cost center Azure subscription routing."],
+      "location": "Enterprise > Billing & Licensing > Payment information; Cost centers",
+      "workshopSuitability": "reference-only",
+      "prerequisites": ["Finance approval of the account, eligible payment method, and any Azure subscription.", "The lab already has an Azure subscription; no payment or subscription changes are permitted."],
+      "knownLimitations": ["Credit card and PayPal are supported for unmanaged accounts, or as nonrecurring methods for managed accounts. Invoice and ACH are for managed accounts only.", "Azure subscription eligibility and account restrictions apply; connecting a subscription does not establish entitlement to a discount.", "Separate cost centers can route usage to different Azure subscriptions. Without its own subscription, a cost center uses the enterprise subscription; invalid or deleted cost centers also fall back for future usage."],
+      "releaseStatus": "No preview claim made.",
+      "propagation": "No fixed connection or billing propagation duration established from reviewed sources.",
+      "documentation": [
+        {"label": "Supported payment methods", "url": "https://docs.github.com/en/enterprise-cloud@latest/billing/reference/supported-payment-methods"},
+        {"label": "Connect an Azure subscription", "url": "https://docs.github.com/en/enterprise-cloud@latest/billing/how-tos/set-up-payment/connect-azure-sub"},
+        {"label": "Azure routing and fallback", "url": "https://docs.github.com/en/enterprise-cloud@latest/billing/reference/azure-subscription"},
+        {"label": "Manage payment information", "url": "https://docs.github.com/en/enterprise-cloud@latest/billing/how-tos/set-up-payment/manage-payment-info"}
+      ]
+    },
+    {
+      "id": "billing.ai-credit-guardrails",
+      "name": "AI credit consumption and spending guardrails",
+      "governanceCategory": "billing",
+      "scope": "enterprise",
+      "requiredPermissions": "Enterprise owner or enterprise billing manager.",
+      "supportedSurfaces": ["Per-user Copilot AI credit consumption, bundled metered AI-credit spending across products, and documented SKU-level controls including Code Security AI Credits."],
+      "location": "Enterprise > Billing & Licensing > Budgets and alerts",
+      "workshopSuitability": "hands-on",
+      "prerequisites": ["An assigned test account where Bundled AI credits budget controls are available.", "Choose budget amounts, scopes, and alert recipients in the test environment; zero amounts may be used to explore blocking."],
+      "knownLimitations": ["User-level budgets cap each user's included and metered AI credit consumption and always hard-stop. Individual ULBs take precedence over ULBs assigned to cost centers, then universal ULBs.", "Under pooled billing, cost-center, organization, and enterprise budgets cap metered charges after pool exhaustion, not license fees or each user's included consumption. Stop usage when budget limit is reached must be enabled for enforcement.", "A ULB assigned to a cost center is a per-user limit, not the cost center's total metered-spending budget.", "Separate included usage controls cap a cost center's draw from included credits; configure them only for intentionally retained pooled billing, not the announced non-pooled model.", "A reached user-level limit is not overridden by remaining group or enterprise budget.", "Bundled AI-credit budgets include other AI-credit products. If bundled and SKU-level hard budgets both apply, exhausting either can block the workload.", "User-level budget alerts are not consistently available; also monitor enterprise or cost-center usage."],
+      "releaseStatus": "No preview claim made for this exercise.",
+      "propagation": "No fixed propagation duration established from reviewed sources.",
+      "documentation": [
+        {"label": "Budget behavior", "url": "https://docs.github.com/en/enterprise-cloud@latest/copilot/concepts/billing-and-usage/organizations-and-enterprises/budgets"},
+        {"label": "Budget setup and permissions", "url": "https://docs.github.com/en/enterprise-cloud@latest/billing/how-tos/set-up-budgets"},
+        {"label": "Budget alerts and limitations", "url": "https://docs.github.com/en/enterprise-cloud@latest/billing/concepts/budgets-and-alerts"}
+      ]
+    },
+    {
+      "id": "billing.cost-centers",
+      "name": "Cost centers and allocation",
+      "governanceCategory": "billing",
+      "scope": "enterprise",
+      "requiredPermissions": "Enterprise owner or enterprise billing manager for this exercise.",
+      "supportedSurfaces": ["Cost attribution using users, enterprise teams, and licensing organizations."],
+      "location": "Enterprise > Billing and licensing > Cost centers",
+      "workshopSuitability": "hands-on",
+      "prerequisites": ["A preconfigured billing connection, approved membership, and a known licensing source.", "Permission to inspect or create a dedicated cost center without moving shared resources."],
+      "knownLimitations": ["Cost centers attribute spending; internal showback or chargeback is a finance process, not a promise of a separate invoice.", "Direct user assignments take precedence over conflicting enterprise-team assignments. Among teams assigned to different cost centers, the team created first applies.", "Enterprise-team membership stays current automatically as people join or leave the team.", "A resource belongs to one cost center; assigning it elsewhere moves it. Allocation changes affect future usage.", "Cost centers apply to metered usage, not volume or subscription billing. Organization attribution follows the billed licensing organization."],
+      "releaseStatus": "No preview claim made for this exercise.",
+      "propagation": "Team membership stays current automatically; no fixed propagation duration is asserted.",
+      "documentation": [
+        {"label": "Cost centers and roles", "url": "https://docs.github.com/en/enterprise-cloud@latest/billing/concepts/cost-centers"},
+        {"label": "Create and inspect cost centers", "url": "https://docs.github.com/en/enterprise-cloud@latest/billing/how-tos/products/use-cost-centers"},
+        {"label": "Allocation precedence", "url": "https://docs.github.com/en/enterprise-cloud@latest/billing/reference/cost-center-allocation"}
+      ]
+    },
+    {
+      "id": "billing.usage-reporting",
+      "name": "AI consumption and billing reports",
+      "governanceCategory": "billing",
+      "scope": "enterprise",
+      "requiredPermissions": "Enterprise owner or enterprise billing manager for dashboard inspection in this exercise.",
+      "supportedSurfaces": ["AI usage dashboard, one downloadable AI usage report in CSV format, chart data exports, broader metered billing reports, CSV billing report API, and a separate budgets API for budget state."],
+      "location": "Enterprise > Billing & Licensing > Usage > AI usage or Metered usage",
+      "workshopSuitability": "reference-only",
+      "prerequisites": ["An agreed reporting period and filters.", "Live usage when available; an empty sandbox remains missing live data, not proof of zero production cost."],
+      "knownLimitations": ["Enterprise owners and billing managers can filter AI usage by user. Organization owners need a usage report for per-user consumption.", "There is one AI usage report, covering up to 31 days with user, model, and token detail. Summarized and detailed metered reports are broader billing reports, not extra AI-credit report types.", "Emailed report download links expire after 24 hours. Chart data exports reflect the selected chart view, not necessarily the full report.", "The usage report exports API accepts ai_credit report requests, processes them asynchronously, and returns status and download_urls. Inspect processing, completed, or failed status before downloading.", "The budgets API provides configured amounts, enforcement settings, and consumed amounts for assessing budget state; these are not a substitute for billing-report data. The user filter returns effective_budget details for the specified login.", "Reports and budget state support recorded cost and budget-position views, not session histories or proof of a real-time synchronized balance.", "Gross consumption is not the same as net billed amounts. Spending alone does not establish engineering impact.", "Exports may contain user-level information. Keep real reports and credentials outside the canvas and repository."],
+      "releaseStatus": "No blanket release-status claim; consult the linked endpoint reference.",
+      "propagation": "No fixed reporting delay is asserted. Record the available period and missing data.",
+      "documentation": [
+        {"label": "AI usage and report navigation", "url": "https://docs.github.com/en/enterprise-cloud@latest/billing/how-tos/products/view-productlicense-use"},
+        {"label": "Cost center usage attribution", "url": "https://docs.github.com/en/enterprise-cloud@latest/billing/reference/cost-center-allocation"},
+        {"label": "Report fields and gross/net amounts", "url": "https://docs.github.com/en/enterprise-cloud@latest/billing/reference/billing-reports"},
+        {"label": "Budget state API", "url": "https://docs.github.com/en/enterprise-cloud@latest/rest/billing/budgets"},
+        {"label": "Usage report export API", "url": "https://docs.github.com/en/enterprise-cloud@latest/rest/billing/usage-reports?apiVersion=2026-03-10"},
+        {"label": "Enterprise billing OAuth scope", "url": "https://docs.github.com/en/enterprise-cloud@latest/apps/oauth-apps/building-oauth-apps/scopes-for-oauth-apps"},
+        {"label": "CSV billing report availability", "url": "https://github.blog/changelog/2026-06-04-api-access-to-billing-usage-reports-now-generally-available/"}
+      ]
+    }
+  ]
+}

@@ -1,0 +1,36 @@
+name: Validate governance canvas
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  workshop:
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-24.04, windows-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: 24
+      - name: Validate authoring structure without a canvas
+        run: node scripts/validate-content.mjs
+      - run: node --test tests/content-validation/*.test.mjs
+      - run: node --test .github/extensions/governance-lab/*.test.mjs
+      - run: npm ci --prefix tests/canvas-e2e
+      - name: Install Chromium and Linux dependencies
+        if: matrix.os == 'ubuntu-24.04'
+        run: npm exec --prefix tests/canvas-e2e -- playwright install --with-deps --only-shell chromium
+      - name: Install Chromium headless shell
+        if: matrix.os != 'ubuntu-24.04'
+        run: npm exec --prefix tests/canvas-e2e -- playwright install --only-shell chromium
+      - run: npm test --prefix tests/canvas-e2e

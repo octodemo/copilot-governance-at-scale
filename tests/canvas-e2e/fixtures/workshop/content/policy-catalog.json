@@ -1,0 +1,39 @@
+{
+  "schemaVersion": 1,
+  "policies": [
+    {
+      "id": "user.fixture-alpha",
+      "name": "Fictional alpha policy",
+      "governanceCategory": "user",
+      "scope": "enterprise",
+      "requiredPermissions": "Fictional permission description; not a product claim.",
+      "supportedSurfaces": ["Fictional surface"],
+      "location": "Prepared fictional example",
+      "workshopSuitability": "demonstration",
+      "prerequisites": ["Fictional prerequisite"],
+      "knownLimitations": ["Fictional limitation"],
+      "releaseStatus": "No product claim",
+      "propagation": "No product claim",
+      "documentation": [
+        {"label": "Fixture alpha documentation", "url": "https://docs.github.com/en"}
+      ]
+    },
+    {
+      "id": "agent.fixture-gamma",
+      "name": "Fictional gamma policy",
+      "governanceCategory": "agent",
+      "scope": "organization",
+      "requiredPermissions": "Fictional permission description; not a product claim.",
+      "supportedSurfaces": ["Fictional surface"],
+      "location": "Prepared fictional example",
+      "workshopSuitability": "demonstration",
+      "prerequisites": ["Fictional prerequisite"],
+      "knownLimitations": ["Fictional limitation"],
+      "releaseStatus": "No product claim",
+      "propagation": "No product claim",
+      "documentation": [
+        {"label": "Fixture gamma documentation", "url": "https://docs.github.com/en/copilot"}
+      ]
+    }
+  ]
+}

@@ -1,0 +1,30 @@
+{
+  "version": 3,
+  "title": "Copilot Governance Workshop",
+  "blocks": [
+    {
+      "id": "access-management",
+      "source": "access-management.md"
+    },
+    {
+      "id": "user-governance",
+      "source": "user-governance.md"
+    },
+    {
+      "id": "billing-cost-control",
+      "source": "billing-cost-control.md"
+    },
+    {
+      "id": "agent-governance",
+      "source": "agent-governance.md"
+    },
+    {
+      "id": "context-management",
+      "source": "context-management.md"
+    },
+    {
+      "id": "observability",
+      "source": "observability.md"
+    }
+  ]
+}

@@ -1,0 +1,8 @@
+{
+  "name": "copilot-governance-workshop",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node ../../../scripts/validate-content.mjs --root ../../.. && node --test *.test.mjs ../../../tests/content-validation/*.test.mjs"
+  }
+}

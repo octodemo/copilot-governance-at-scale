@@ -1,0 +1,22 @@
+{
+  "schemaVersion": 1,
+  "policies": [
+    {
+      "id": "user.example",
+      "name": "Fictional example",
+      "governanceCategory": "user",
+      "scope": "repository",
+      "requiredPermissions": "Fictional permission description; not a product claim.",
+      "supportedSurfaces": ["Fictional surface"],
+      "location": "Prepared fictional example",
+      "workshopSuitability": "demonstration",
+      "prerequisites": ["Fictional prerequisite"],
+      "knownLimitations": ["Fictional limitation"],
+      "releaseStatus": "No product claim",
+      "propagation": "No product claim",
+      "documentation": [
+        {"label": "URL syntax fixture, not product grounding", "url": "https://docs.github.com/en"}
+      ]
+    }
+  ]
+}

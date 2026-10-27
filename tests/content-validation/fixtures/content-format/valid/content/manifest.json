@@ -1,0 +1,8 @@
+{
+  "version": 3,
+  "title": "Fictional contract fixtures",
+  "blocks": [
+    {"id": "example-block", "source": "example-block.md"},
+    {"id": "empty-block", "source": "empty-block.md"}
+  ]
+}
