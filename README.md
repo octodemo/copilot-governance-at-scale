@@ -108,7 +108,3 @@ Presenters and re-delivery partners can use:
 | --- | --- |
 | [**Facilitator guide**](docs/facilitator-guide.md) | Session preparation, run of show, discussion prompts, interruptions, and closeout |
 | [**Workshop setup guide**](docs/setup.md) | App and repository setup, sandbox handoff, rehearsal, validation, and troubleshooting |
-
-Current workshop material is an unvetted draft; complete product-fact
-verification and human review before delivery. Structural checks do not
-establish content approval.
