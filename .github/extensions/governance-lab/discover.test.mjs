@@ -1,22 +1,47 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { discoverAccounts, GH_COMMANDS } from "./discover.mjs";
+import { authStatus, discoverAccounts, GH_COMMANDS, REQUIRED_SCOPES, signInCommand } from "./discover.mjs";
 import { openServer } from "./server.mjs";
 
 const fail = (fields) => Object.assign(new Error("gh failed"), fields);
 
-test("automatic detection uses only enterprises and derives both profile values from one lab slug", async () => {
+const labEnterprises = (slugs) => JSON.stringify([{ data: { viewer: { enterprises: { nodes: slugs.map((slug) => ({ slug })) } } } }]);
+
+test("automatic detection derives enterprise, organization, and repository from the lab account", async () => {
   const calls = [];
   const result = await discoverAccounts({ automatic: true, run: async (args) => {
     calls.push(args[1]);
     if (args[1] === "user") return '{"login":"octocat"}';
+    if (args[1] === "user/orgs") return JSON.stringify([[{ login: "other" }, { login: "GHUniverse1874-EA76" }]]);
+    if (args[1] === "orgs/GHUniverse1874-EA76/repos?per_page=100") return JSON.stringify([[{ name: "notes" }, { name: "pets-workshop" }], [{ name: "../bad" }]]);
     return JSON.stringify([{ data: { viewer: { enterprises: { nodes: [
       { slug: "unrelated" }, { slug: "ghuniverse1847-octocat" }, { slug: "ghuniverse1874-ea76" },
       { slug: "ghuniverse1874-ea76" }, { slug: "ghuniverse1874-bad/value" },
     ] } } } }]);
   } });
-  assert.deepEqual(calls, ["user", "graphql"]);
-  assert.deepEqual(result, { profile: { enterpriseSlug: "ghuniverse1874-ea76", organizationSlug: "ghuniverse1874-ea76" } });
+  assert.deepEqual(calls, ["user", "graphql", "user/orgs", "orgs/GHUniverse1874-EA76/repos?per_page=100"]);
+  assert.deepEqual(result, { profile: { enterpriseSlug: "ghuniverse1874-ea76", organizationSlug: "GHUniverse1874-EA76", repositoryName: "pets-workshop" }, notices: [] });
+});
+
+test("automatic detection picks a single lab organization or repository and reports what it could not detect", async () => {
+  const run = (orgs, repos) => async (args) => {
+    if (args[1] === "user") return '{"login":"octocat"}';
+    if (args[1] === "graphql") return labEnterprises(["ghuniverse1874-ea76"]);
+    if (args[1] === "user/orgs") { if (orgs instanceof Error) throw orgs; return JSON.stringify([orgs.map((login) => ({ login }))]); }
+    if (repos instanceof Error) throw repos;
+    return JSON.stringify([repos.map((name) => ({ name }))]);
+  };
+  const single = await discoverAccounts({ automatic: true, run: run(["ghuniverse1874-org"], ["only-repo"]) });
+  assert.deepEqual(single, { profile: { enterpriseSlug: "ghuniverse1874-ea76", organizationSlug: "ghuniverse1874-org", repositoryName: "only-repo" }, notices: [] });
+
+  const several = await discoverAccounts({ automatic: true, run: run(["other"], ["a", "b"]) });
+  assert.deepEqual(several.profile, { enterpriseSlug: "ghuniverse1874-ea76", organizationSlug: "ghuniverse1874-ea76" });
+  assert.equal(several.notices.length, 2);
+  assert.match(several.notices[1], /several repositories/);
+
+  const failing = await discoverAccounts({ automatic: true, run: run(fail({ stderr: "HTTP 403" }), fail({ stderr: "HTTP 404" })) });
+  assert.deepEqual(failing.profile, { enterpriseSlug: "ghuniverse1874-ea76", organizationSlug: "ghuniverse1874-ea76" });
+  assert.match(failing.notices.join(" "), /could not be listed.*could not be listed/);
 });
 
 test("automatic detection fails explicitly for missing, ambiguous, inaccessible, or malformed enterprises", async () => {
@@ -41,15 +66,17 @@ test("automatic detection fails explicitly for missing, ambiguous, inaccessible,
   }
 });
 
-test("automatic discovery retains the environment-token fallback without querying organizations", async () => {
+test("automatic discovery retains the environment-token fallback for every lookup", async () => {
   const calls = [];
   const result = await discoverAccounts({ automatic: true, env: { GH_TOKEN: "x" }, run: async (args, { useEnvToken }) => {
     calls.push([args[1], useEnvToken]);
     if (!useEnvToken) throw fail({ stderr: "not logged in" });
+    if (args[1] === "user/orgs") return "[[]]";
+    if (args[1].startsWith("orgs/")) return '[[{"name":"pets-workshop"}]]';
     return args[1] === "user" ? '{"login":"octocat"}' :
       '{"data":{"viewer":{"enterprises":{"nodes":[{"slug":"ghuniverse1874-ea76"}]}}}}';
   } });
-  assert.deepEqual(calls, [["user", false], ["graphql", false], ["user", true], ["graphql", true]]);
+  assert.deepEqual(calls, [["user", false], ["graphql", false], ["user", true], ["graphql", true], ["user/orgs", true], ["orgs/ghuniverse1874-ea76/repos?per_page=100", true]]);
   assert.equal(result.profile.organizationSlug, "ghuniverse1874-ea76");
 });
 
@@ -167,4 +194,67 @@ test("discovery route validates automatic mode and keeps automatic and manual lo
   assert.deepEqual(await results[0].json(), { automatic: false });
   assert.deepEqual(await results[1].json(), { automatic: true });
   assert.deepEqual(modes.sort(), [false, true]);
+});
+
+const statusJson = (entry) => JSON.stringify({ hosts: { "github.com": entry ? [entry] : [] } });
+
+test("auth status checks stored credentials for the enterprise and organization admin scopes", async () => {
+  const seen = [];
+  const check = (output) => authStatus({ run: async (args, options) => {
+    seen.push([args, options]);
+    if (output instanceof Error) throw output;
+    return output;
+  } });
+  const ready = await check(statusJson({ state: "success", active: true, login: "lab-admin", scopes: "admin:enterprise, admin:org, repo" }));
+  assert.deepEqual(seen[0], [[...GH_COMMANDS.authStatus], { useEnvToken: false }]);
+  assert.deepEqual(GH_COMMANDS.authStatus, ["auth", "status", "--json", "hosts", "--active", "--hostname", "github.com"]);
+  assert.equal(ready.status, "ready");
+  assert.equal(ready.account, "lab-admin");
+  const missing = await check(statusJson({ state: "success", active: true, login: "lab-admin", scopes: "repo, read:org" }));
+  assert.equal(missing.status, "missing-scopes");
+  assert.deepEqual(missing.missingScopes, [...REQUIRED_SCOPES]);
+  for (const output of [statusJson(null), statusJson({ state: "error", active: true, login: "" }), statusJson({ state: "success", active: true, login: "<x>" })]) {
+    assert.equal((await check(output)).status, "signed-out");
+  }
+  assert.equal((await check(fail({ code: "ENOENT" }))).status, "gh-missing");
+  assert.match((await check(fail({ stderr: "unknown flag: --json" }))).message, /Update gh/);
+  assert.equal((await check("not json")).status, "failed");
+});
+
+test("sign-in commands are fixed, request admin scopes, and clear injected tokens", () => {
+  assert.equal(signInCommand("login", "darwin"),
+    "env -u GH_TOKEN -u GITHUB_TOKEN gh auth login --hostname github.com --git-protocol https --web --clipboard --scopes admin:enterprise,admin:org");
+  assert.equal(signInCommand("refresh", "linux"),
+    "env -u GH_TOKEN -u GITHUB_TOKEN gh auth refresh --hostname github.com --clipboard --scopes admin:enterprise,admin:org");
+  assert.match(signInCommand("login", "win32"), /^cmd \/d \/c "set GH_TOKEN=& set GITHUB_TOKEN=& gh auth login /);
+  assert.throws(() => signInCommand("logout"), TypeError);
+});
+
+test("auth routes require the token, validate the mode, and open only fixed sign-in commands", async (t) => {
+  const opened = [];
+  let checks = 0;
+  const entry = await openServer({ content: { paths: [] }, store: {}, documentId: "auth-test", platform: "darwin",
+    checkAuth: async () => { checks++; return { status: "signed-out" }; },
+    openTerminal: async (command, title) => { opened.push([command, title]); } });
+  t.after(() => { entry.server.closeAllConnections(); return new Promise((resolve) => entry.server.close(resolve)); });
+  const headers = { "Content-Type": "application/json", "X-Canvas-Token": entry.token };
+  assert.equal((await fetch(new URL("/api/auth/status", entry.url))).status, 403);
+  const status = await fetch(new URL("/api/auth/status", entry.url), { headers });
+  assert.deepEqual(await status.json(), { status: "signed-out" });
+  assert.equal(checks, 1);
+  const signIn = (body, extra = headers) => fetch(new URL("/api/auth/sign-in", entry.url), { method: "POST", headers: extra, body: JSON.stringify(body) });
+  assert.equal((await signIn({ mode: "login" }, { "Content-Type": "application/json" })).status, 403);
+  for (const body of [{}, { mode: "logout" }, { mode: "login", command: "rm -rf /" }]) assert.equal((await signIn(body)).status, 400);
+  assert.equal(opened.length, 0);
+  assert.equal((await signIn({ mode: "refresh" })).status, 200);
+  assert.deepEqual(opened, [[signInCommand("refresh", "darwin"), "GitHub CLI sign-in"]]);
+});
+
+test("sign-in route without a terminal host returns the command to run manually", async (t) => {
+  const entry = await openServer({ content: { paths: [] }, store: {}, documentId: "auth-no-terminal", platform: "darwin" });
+  t.after(() => { entry.server.closeAllConnections(); return new Promise((resolve) => entry.server.close(resolve)); });
+  const response = await fetch(new URL("/api/auth/sign-in", entry.url), { method: "POST",
+    headers: { "Content-Type": "application/json", "X-Canvas-Token": entry.token }, body: JSON.stringify({ mode: "login" }) });
+  assert.equal(response.status, 501);
+  assert.match((await response.json()).message, /gh auth login --hostname github\.com/);
 });

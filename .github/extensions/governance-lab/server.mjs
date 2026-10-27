@@ -5,7 +5,7 @@ import {
   createRouter, HttpError, PAGE_CSP, STATIC_CSP, readJsonObject, serveStaticFile, startServer, writeJson
 } from "./http.mjs";
 import { escapeHtml } from "./ui/html.js";
-import { discoverAccounts } from "./discover.mjs";
+import { authStatus, discoverAccounts, signInCommand } from "./discover.mjs";
 import { validateTerminalCommand } from "./terminal.mjs";
 
 const assets = new Map([
@@ -113,9 +113,10 @@ async function messageFor(content, contentRoot, input) {
   return { prompt: parts.join("\n\n"), attachments: [...selections.values()], count: parts.length };
 }
 
-export async function openServer({ content, store, workshop, documentId, log, dev = false, sendToAgent = null, openTerminal = null, contentRoot = repositoryRoot, discover = discoverAccounts }) {
+export async function openServer({ content, store, workshop, documentId, log, dev = false, sendToAgent = null, openTerminal = null, contentRoot = repositoryRoot, discover = discoverAccounts, checkAuth = authStatus, platform = process.platform }) {
   const current = () => workshop?.snapshot() ?? { content, store };
   const discoveries = new Map();
+  let authCheck = null;
   const router = createRouter()
     .register("GET", "/favicon.ico", ({ res }) => {
       res.statusCode = 204;
@@ -208,6 +209,23 @@ export async function openServer({ content, store, workshop, documentId, log, de
     .register("POST", "/api/profile", async ({ req, res }) => {
       const { contentVersion, ...input } = await readJsonObject(req);
       writeJson(res, 200, await (workshop ? workshop.updateProfile(documentId, contentVersion, input) : store.updateProfile(documentId, input)));
+    }, { auth: "token" })
+    .register("GET", "/api/auth/status", async ({ res }) => {
+      // Read-only; concurrent polls share one gh invocation.
+      authCheck ??= Promise.resolve().then(() => checkAuth()).finally(() => { authCheck = null; });
+      writeJson(res, 200, await authCheck);
+    }, { auth: "token" })
+    .register("POST", "/api/auth/sign-in", async ({ req, res }) => {
+      const input = await readJsonObject(req);
+      if (Object.keys(input).join(",") !== "mode" || !["login", "refresh"].includes(input.mode)) {
+        throw new HttpError(400, "Expected { mode: \"login\" | \"refresh\" }.");
+      }
+      if (!openTerminal) throw new HttpError(501, `This host cannot open a terminal canvas. Run this command in your terminal instead: ${signInCommand(input.mode, platform)}`);
+      try { await openTerminal(signInCommand(input.mode, platform), "GitHub CLI sign-in"); }
+      catch (error) {
+        throw new HttpError(502, `Could not confirm that the terminal opened: ${error.message}. Check open terminals before trying again; sign-in may already have started.`);
+      }
+      writeJson(res, 200, { opened: true });
     }, { auth: "token" })
     .register("POST", "/api/profile/discover", async ({ req, res }) => {
       const input = await readJsonObject(req);

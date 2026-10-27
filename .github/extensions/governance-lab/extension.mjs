@@ -121,7 +121,7 @@ session = await joinSession({
       if (!entry) {
         // Dev-only: submits picked sections with the reviewer's prompts as a user turn (queued if the agent is busy).
         const sendToAgent = (message) => session.send(message);
-        const openTerminal = (command) => openCommandTerminal(session, command, documentId);
+        const openTerminal = (command, title) => openCommandTerminal(session, command, documentId, title);
         entry = { ...await openServer({ workshop, documentId, dev, sendToAgent, openTerminal, log: (...args) => session.log(...args) }), documentId, dev };
         servers.set(ctx.instanceId, entry);
       }

@@ -579,6 +579,8 @@ uses the participant's local `gh` authentication for fixed read-only queries,
 and writes nothing. Missing `gh`, missing sign-in, token-scope failures, and
 timeouts are reported per list; manual entry remains available.
 
+The token-protected `GET /api/auth/status` route checks the stored `gh auth login` credentials for github.com (never `GH_TOKEN`/`GITHUB_TOKEN`) and returns `{status, account, missingScopes, message}`, where `status` is `ready`, `missing-scopes`, `signed-out`, `gh-missing`, or `failed`. Ready requires the `admin:enterprise` and `admin:org` scopes. The token-protected `POST /api/auth/sign-in` route accepts exactly `{mode: "login"|"refresh"}` and opens the workshop terminal with a fixed `gh auth login` or `gh auth refresh` command that requests those scopes; it clears `GH_TOKEN`/`GITHUB_TOKEN` for that command only. It stores no credentials; without a terminal host it returns 501 with the command for manual use. Automatic profile discovery runs only after the status is `ready`.
+
 The shared model's `summary(content,state)` returns blocks with `decisions`,
 `guidance[]`, `exercises[]`, and `inactiveExerciseIds`, not one shared lab.
 Inactive IDs represent unselected exercises with retained participant input,

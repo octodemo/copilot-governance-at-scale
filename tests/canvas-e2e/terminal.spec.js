@@ -14,6 +14,7 @@ test.beforeEach(async ({ page }) => {
   store = createStore(await workspaceFor({ after: (fn) => cleanup.push(fn) }), content);
   entry = await openServer({ content, store, documentId: "terminal-browser",
     discover: async () => ({ profile: null, error: { code: "not-found", message: "No lab account in this fixture." } }),
+    checkAuth: async () => ({ status: "ready", account: "octocat", missingScopes: [], message: "GitHub CLI is signed in as @octocat." }),
     openTerminal: async (value) => { if (fail) throw new Error("host unavailable"); calls.push(value); },
   });
   await page.goto(`${entry.url}?path=${content.paths[0].id}&stage=understand`);

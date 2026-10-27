@@ -1,4 +1,5 @@
 import { execFile } from "node:child_process";
+import { DEFAULT_REPOSITORY_NAME, validRepositoryName } from "../../../lib/workshop-resolver.mjs";
 
 // Read-only GitHub CLI discovery of profile candidates. Arguments are fixed;
 // participant input never reaches the command line, and results are not stored.
@@ -12,11 +13,34 @@ const ENV_TOKENS = ["GH_TOKEN", "GITHUB_TOKEN"];
 const LOGIN = /^[A-Za-z0-9](?:[A-Za-z0-9_-]{0,98}[A-Za-z0-9])?$/;
 const LAB_PREFIX = "ghuniverse1874-";
 
+const HOST = "github.com";
+// Enterprise and organization administration scopes requested at sign-in.
+export const REQUIRED_SCOPES = Object.freeze(["admin:enterprise", "admin:org"]);
+
 export const GH_COMMANDS = Object.freeze({
   account: Object.freeze(["api", "user"]),
   organizations: Object.freeze(["api", "user/orgs", "--paginate", "--slurp"]),
   enterprises: Object.freeze(["api", "graphql", "--paginate", "--slurp", "-f", `query=${ENTERPRISES_QUERY}`]),
+  authStatus: Object.freeze(["auth", "status", "--json", "hosts", "--active", "--hostname", HOST]),
 });
+
+// Only called with a slug that already matched SLUG; execFile passes it as one argument.
+const repositoriesCommand = (organization) => ["api", `orgs/${organization}/repos?per_page=100`, "--paginate", "--slurp"];
+
+// Fixed sign-in commands opened in the visible workshop terminal after an explicit
+// click. GH_TOKEN/GITHUB_TOKEN are cleared for the command only, because gh
+// refuses to store credentials while either is set.
+const SIGN_IN_ARGS = Object.freeze({
+  login: ["auth", "login", "--hostname", HOST, "--git-protocol", "https", "--web", "--clipboard", "--scopes", REQUIRED_SCOPES.join(",")],
+  refresh: ["auth", "refresh", "--hostname", HOST, "--clipboard", "--scopes", REQUIRED_SCOPES.join(",")],
+});
+export function signInCommand(mode, platform = process.platform) {
+  const args = SIGN_IN_ARGS[mode];
+  if (!args) throw new TypeError(`Unknown sign-in mode: ${mode}`);
+  return platform === "win32" ?
+    `cmd /d /c "set GH_TOKEN=& set GITHUB_TOKEN=& gh ${args.join(" ")}"` :
+    `env -u GH_TOKEN -u GITHUB_TOKEN gh ${args.join(" ")}`;
+}
 
 export function hasEnvToken(env = process.env) {
   return ENV_TOKENS.some((name) => env[name]);
@@ -96,15 +120,83 @@ export async function discoverAccounts({ run = runGh, env = process.env, automat
   if (result.unauthenticated && hasEnvToken(env)) result = await discoverWith(run, "environment", automatic);
   if (automatic) {
     if (result.enterprises.error) return { profile: null, error: result.enterprises.error };
-    const matches = result.enterprises.items.filter(({ slug }) => slug.toLowerCase().startsWith(LAB_PREFIX) && slug.length > LAB_PREFIX.length);
+    const matches = result.enterprises.items.filter(({ slug }) => isLabSlug(slug));
     if (matches.length !== 1) return { profile: null, error: {
       code: matches.length ? "ambiguous" : "not-found",
       message: matches.length ? `Multiple enterprises match ${LAB_PREFIX}. Choose your lab enterprise manually.` :
         `No enterprise matching ${LAB_PREFIX} was found for this GitHub CLI account.`,
     } };
-    const slug = matches[0].slug;
-    return { profile: { enterpriseSlug: slug, organizationSlug: slug } };
+    const enterpriseSlug = matches[0].slug;
+    const options = { useEnvToken: result.source === "environment" };
+    const notices = [];
+    const organizationSlug = await detectOrganization(run, options, enterpriseSlug, notices);
+    const repositoryName = await detectRepository(run, options, organizationSlug, notices);
+    return { profile: { enterpriseSlug, organizationSlug, ...(repositoryName ? { repositoryName } : {}) }, notices };
   }
   const { unauthenticated, ...output } = result;
   return output;
+}
+
+const isLabSlug = (slug) => slug.toLowerCase().startsWith(LAB_PREFIX) && slug.length > LAB_PREFIX.length;
+
+// Lab organizations share their enterprise's slug. Prefer that exact match, then a
+// single lab-prefixed organization; otherwise keep the shared-slug convention.
+async function detectOrganization(run, options, enterpriseSlug, notices) {
+  let organizations;
+  try { organizations = candidates(pages(await run([...GH_COMMANDS.organizations], options)).flat(), "login"); }
+  catch {
+    notices.push(`Organization membership could not be listed; using ${enterpriseSlug}, the lab organization naming convention.`);
+    return enterpriseSlug;
+  }
+  const exact = organizations.find(({ slug }) => slug.toLowerCase() === enterpriseSlug.toLowerCase());
+  if (exact) return exact.slug;
+  const lab = organizations.filter(({ slug }) => isLabSlug(slug));
+  if (lab.length === 1) return lab[0].slug;
+  notices.push(`No single lab organization was found for this account; using ${enterpriseSlug}. Check the organization in the profile.`);
+  return enterpriseSlug;
+}
+
+// Returns a repository only when the organization contains the workshop default
+// or exactly one repository; otherwise the profile keeps its current value.
+async function detectRepository(run, options, organization, notices) {
+  let names;
+  try {
+    names = pages(await run(repositoriesCommand(organization), options)).flat()
+      .map((item) => item?.name).filter((name) => typeof name === "string" && validRepositoryName(name)).slice(0, MAX_ITEMS);
+  } catch {
+    notices.push(`Repositories in ${organization} could not be listed. Check the repository in the profile.`);
+    return null;
+  }
+  const preferred = names.find((name) => name.toLowerCase() === DEFAULT_REPOSITORY_NAME.toLowerCase());
+  if (preferred) return preferred;
+  if (names.length === 1) return names[0];
+  notices.push(names.length ? `${organization} has several repositories and none is named ${DEFAULT_REPOSITORY_NAME}. Choose the repository in the profile.` :
+    `${organization} has no repositories visible to this account. Check the repository in the profile.`);
+  return null;
+}
+
+// Read-only check of the stored (not environment) credentials for the lab host.
+export async function authStatus({ run = runGh } = {}) {
+  let entry;
+  try {
+    const parsed = JSON.parse(await run([...GH_COMMANDS.authStatus], { useEnvToken: false }));
+    const accounts = parsed?.hosts?.[HOST];
+    entry = Array.isArray(accounts) ? accounts.find((account) => account?.active) ?? accounts[0] : null;
+  } catch (error) {
+    if (error?.code === "ENOENT") return { status: "gh-missing", account: null, missingScopes: [...REQUIRED_SCOPES],
+      message: "GitHub CLI (gh) was not found. Install it from cli.github.com, then check again." };
+    if (/unknown flag|unknown command/i.test(`${error?.stderr ?? ""}`)) return { status: "failed", account: null, missingScopes: [...REQUIRED_SCOPES],
+      message: "This GitHub CLI version cannot report its sign-in status. Update gh, then check again." };
+    if (error instanceof SyntaxError) return { status: "failed", account: null, missingScopes: [...REQUIRED_SCOPES], message: INVALID.message };
+    return { status: "failed", account: null, missingScopes: [...REQUIRED_SCOPES], message: "GitHub CLI could not report its sign-in status." };
+  }
+  const account = typeof entry?.login === "string" && LOGIN.test(entry.login) ? entry.login : null;
+  if (!entry || entry.state !== "success" || !account) {
+    return { status: "signed-out", account: null, missingScopes: [...REQUIRED_SCOPES], message: "GitHub CLI is not signed in to github.com." };
+  }
+  const scopes = new Set(String(entry.scopes ?? "").split(",").map((scope) => scope.trim()).filter(Boolean));
+  const missingScopes = REQUIRED_SCOPES.filter((scope) => !scopes.has(scope));
+  return missingScopes.length ?
+    { status: "missing-scopes", account, missingScopes, message: `GitHub CLI is signed in as @${account} without the ${missingScopes.join(" and ")} scope${missingScopes.length === 1 ? "" : "s"}.` } :
+    { status: "ready", account, missingScopes: [], message: `GitHub CLI is signed in as @${account}.` };
 }
