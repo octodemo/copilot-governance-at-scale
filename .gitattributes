@@ -1,0 +1,2 @@
+# Preserve the vendored asset's upstream bytes and integrity digest on Windows.
+.github/extensions/governance-lab/ui/primer.css text eol=lf

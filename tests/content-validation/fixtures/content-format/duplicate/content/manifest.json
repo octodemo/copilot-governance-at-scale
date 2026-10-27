@@ -1,0 +1,8 @@
+{
+  "version": 3,
+  "title": "Duplicate cross-block identities",
+  "blocks": [
+    {"id": "first-block", "source": "first-block.md"},
+    {"id": "second-block", "source": "second-block.md"}
+  ]
+}

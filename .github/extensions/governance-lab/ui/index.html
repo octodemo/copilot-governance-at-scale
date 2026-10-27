@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="canvas-token" content="{{TOKEN}}">
+  <meta name="canvas-dev" content="{{DEV}}">
+  <title>Copilot Governance Workshop</title>
+  <link rel="stylesheet" href="/primer.css">
+  <link rel="stylesheet" href="/styles.css">
+  <script type="module" src="/app.js"></script>
+</head>
+<body data-color-mode="auto" data-light-theme="light" data-dark-theme="dark">
+  <a class="skip-link" href="#main">Skip to content</a>
+  <aside id="dev-controls" class="dev-panel" aria-label="Dev mode tools" hidden>
+    <button id="dev-toggle" class="dev-toggle" type="button" aria-expanded="true" aria-controls="dev-tools" title="Hide dev mode tools"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 3h6"/><path d="M10 3v6.5L4.6 18.4A1.7 1.7 0 0 0 6 21h12a1.7 1.7 0 0 0 1.4-2.6L14 9.5V3"/><path d="M7.5 15h9"/></svg><span class="sr-only">Dev mode tools</span></button>
+    <div id="dev-tools" class="dev-tools"><span class="dev-label">Dev mode</span><button id="review-all-variants" class="btn btn-sm" type="button" hidden>Review all variants</button><button id="pick-source" class="btn btn-sm" type="button" aria-pressed="false" title="Pick a part of the workshop to send a prompt about its source Markdown to the Copilot agent">Pick section</button><button id="reload" class="btn btn-sm" type="button" title="Reread Markdown and policy metadata, including new content, while preserving saved progress">Reload</button><button id="dev-save-state" class="btn btn-sm" type="button" aria-haspopup="dialog">Save state</button><button id="dev-restore-state" class="btn btn-sm" type="button" aria-haspopup="dialog">Restore state</button><button id="dev-reset" class="btn btn-sm btn-danger" type="button" title="Reset all decisions, exercise progress and history for this lab; a backup is kept">Reset</button></div>
+  </aside>
+  <header class="workshop-header">
+    <div class="header-top"><div><h1>Copilot Governance Lab</h1><p class="muted">Your governance workshop, one decision at a time</p></div></div>
+    <div id="profile-host"></div>
+    <nav id="workshop-navigation" class="workshop-navigation" aria-label="Workshop"></nav>
+  </header>
+  <p id="picker-hint" class="picker-hint" role="status" aria-live="polite" hidden></p>
+  <div id="status" class="workshop-status" role="status" aria-live="polite" aria-atomic="true">Loading workshop...</div>
+  <p id="error" role="alert" tabindex="-1" hidden></p>
+  <main id="main" tabindex="-1"></main>
+  <div class="bottom-dock">
+    <section id="batch" class="batch-panel" aria-labelledby="batch-title" hidden>
+      <div class="batch-header"><h2 id="batch-title">Batch requests pending</h2><div class="batch-actions"><button id="batch-clear" class="btn btn-sm" type="button">Clear</button><button id="batch-send" class="btn btn-sm btn-primary" type="button" title="Send all requests to the Copilot agent as one message">Send all to Copilot</button></div></div>
+      <ol id="batch-list" class="batch-list"></ol>
+    </section>
+    <nav id="navigation" class="decision-navigation" aria-label="Decision navigation" hidden></nav>
+  </div>
+  <template id="state-template"><dialog id="state-dialog" class="state-dialog" aria-labelledby="state-title">
+    <form id="state-form">
+      <h2 id="state-title">Save state</h2>
+      <p>Named states contain all workshop answers, profile, task markers, notes and history. They stay on this computer across agent sessions. Authored content is not included.</p>
+      <div id="state-save-fields"><label for="state-name">State name</label><input id="state-name" class="form-control" type="text" maxlength="80" pattern="[A-Za-z0-9](?:[A-Za-z0-9 ._\-]{0,78}[A-Za-z0-9._\-])?" autocomplete="off">
+        <p class="muted">Start with a letter or digit. Use letters, digits, spaces, dots, underscores or hyphens. Existing names are never overwritten.</p></div>
+      <div id="state-restore-fields" hidden><label for="state-choice">Saved state</label><select id="state-choice" class="form-select"></select>
+        <p class="muted">Restores the entire participant state, not just the current path. The current state is backed up first. Changed content may move earlier completion into history.</p></div>
+      <p id="state-error" class="state-error" role="alert" tabindex="-1" hidden></p>
+      <div class="state-actions"><button id="state-cancel" class="btn" type="button">Cancel</button><button id="state-submit" class="btn btn-primary" type="submit">Save state</button></div>
+    </form>
+  </dialog></template>
+  <template id="prompt-template"><dialog id="prompt-dialog" class="prompt-dialog" aria-labelledby="prompt-title">
+    <form id="prompt-form" method="dialog">
+      <h2 id="prompt-title">Request for Copilot</h2>
+      <p id="prompt-source" class="prompt-source"></p>
+      <label for="prompt-text">What should Copilot do with this section?</label>
+      <textarea id="prompt-text" class="form-control" rows="5" maxlength="4000" required></textarea>
+      <p class="muted prompt-help">Ctrl/⌘+Enter adds to the batch. Send now or Send all submits immediately to the Copilot agent.</p>
+      <div class="prompt-actions"><button id="prompt-cancel" class="btn" type="button">Cancel</button><button id="prompt-send" class="btn" type="button">Send now</button><button id="prompt-add" class="btn btn-primary" type="submit">Add to batch</button></div>
+    </form>
+  </dialog></template>
+</body>
+</html>

@@ -1,0 +1,9 @@
+{
+  "version": 3,
+  "title": "Fictional browser-test workshop",
+  "blocks": [
+    {"id": "alpha-block", "source": "alpha-block.md"},
+    {"id": "beta-block", "source": "beta-block.md"},
+    {"id": "gamma-block", "source": "gamma-block.md"}
+  ]
+}

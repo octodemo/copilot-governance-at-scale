@@ -1,0 +1,1272 @@
+{
+  "purpose": "Frozen pre-Markdown migration input; never rendered or edited as active workshop content.",
+  "paths": [
+    {
+      "id": "user-governance",
+      "title": "User Governance",
+      "description": "Who gets access, and which models and features can they use?",
+      "status": "ready",
+      "scenario": "scenarios/user-access.md",
+      "decisions": [
+        {
+          "id": "UG-01",
+          "title": "Access and rollout",
+          "question": "Enterprise-level or organization-level? Individual, Teams, Org-Wide or Mixed?",
+          "scenario": "The best access model depends on a multitude of factors.",
+          "guidance": "Whether you have an existing GitHub account that this model needs to fit into, or if you are just starting fresh. Whether you want to assign Copilot Seats to people without a GitHub Enterprise License.",
+          "policyIds": [
+            "access.organization-seats",
+            "access.enterprise-assignment"
+          ],
+          "options": [
+            {
+              "id": "pilot",
+              "label": "Individually or per Organization Team",
+              "tradeoff": "Individual: easy at first, but harder at scale. Organization Level: more administration overhead compared to enterprise-level assignment.",
+              "deferred": false
+            },
+            {
+              "id": "organization",
+              "label": "Every member of an organization",
+              "tradeoff": "Org-Wide: easiest to scale for large organizations.",
+              "deferred": false
+            },
+            {
+              "id": "enterprise-teams",
+              "label": "Per Enterprise Team",
+              "tradeoff": "Enterprise Level: easier, central management.",
+              "deferred": false
+            },
+            {
+              "id": "enterprise-users",
+              "label": "Individually, enterprise-level",
+              "tradeoff": "Individual: easy at first, but harder at scale. Enterprise Level: easier, central management.",
+              "deferred": false
+            },
+            {
+              "id": "mixed",
+              "label": "Mixed",
+              "tradeoff": "Combines individual, team, and org-wide assignments to balance ease of management and scalability. It is a bit harder to manage.",
+              "deferred": false
+            },
+            {
+              "id": "review",
+              "label": "Needs Review",
+              "tradeoff": "The best access model depends on a multitude of factors.",
+              "deferred": true
+            }
+          ]
+        },
+        {
+          "id": "UG-02",
+          "title": "Models, Clients and Features",
+          "question": "Who will make the decision about general access and policies?",
+          "scenario": "Whether you need the ability to apply policies to different groups of people, and how fine-grained this must be.",
+          "guidance": "Some companies are fine with always staying at the cutting edge and allowing developers to use the latest and greatest; other companies prefer, or are even required, to have tighter control as to what is available where and when.",
+          "policyIds": [
+            "models.enterprise-availability",
+            "features.enterprise-policies"
+          ],
+          "options": [
+            {
+              "id": "central",
+              "label": "The central enterprise ownership team",
+              "tradeoff": "Easier, central management.",
+              "configurationGuidance": "Central Feature & Client Policies.",
+              "deferred": false
+            },
+            {
+              "id": "delegate",
+              "label": "Organization owners",
+              "tradeoff": "Whether you need the ability to apply policies to different groups of people, and how fine-grained this must be.",
+              "configurationGuidance": "Apply policies to different groups of people.",
+              "deferred": false
+            },
+            {
+              "id": "review",
+              "label": "Needs Review",
+              "tradeoff": "Who will make the decision about general access and policies?",
+              "deferred": true
+            }
+          ]
+        },
+        {
+          "id": "UG-04",
+          "title": "Assignment automation",
+          "question": "Do you want to use automation or your IdP to manage Copilot Access centrally?",
+          "scenario": "In whatever way you choose, you have two primary ways to automate the process.",
+          "guidance": "Using a custom script and/or GitHub Action that will use the APIs to manage Team Membership and/or Copilot Access. Using IdP Sync at Enterprise or Organization Team level.",
+          "policyIds": [
+            "access.assignment-automation"
+          ],
+          "options": [
+            {
+              "id": "custom",
+              "label": "Using a custom script and/or GitHub Action",
+              "tradeoff": "Requires you to create and maintain this automation. Allows you to plug it into existing access-management platforms or tools you are using in your company.",
+              "configurationGuidance": "Use the APIs to manage Team Membership and/or Copilot Access.",
+              "deferred": false
+            },
+            {
+              "id": "idp",
+              "label": "Using IdP Sync at Enterprise or Organization Team level",
+              "tradeoff": "Only works with Teams. You might still have to automate the team creation, but it is a one-time setup.",
+              "configurationGuidance": "Using IdP Sync at Enterprise or Organization Team level.",
+              "deferred": false
+            },
+            {
+              "id": "review",
+              "label": "Needs Review",
+              "tradeoff": "Do you want to use automation or your IdP to manage Copilot Access centrally?",
+              "deferred": true
+            }
+          ]
+        },
+        {
+          "id": "UG-05",
+          "title": "Self-serve Copilot",
+          "question": "Do you want your users to be able to self-serve Copilot?",
+          "scenario": "Do they need to go through an approval gate or have to fulfill certain preconditions before you want to enable access?",
+          "guidance": "Signing a usage policy, receiving training, etc.",
+          "policyIds": [
+            "access.assignment-automation"
+          ],
+          "options": [
+            {
+              "id": "self-service",
+              "label": "Self-serve Copilot",
+              "tradeoff": "Users are able to self-serve Copilot.",
+              "configurationGuidance": "Users are able to self-serve Copilot.",
+              "deferred": false
+            },
+            {
+              "id": "gated",
+              "label": "An approval gate or certain preconditions",
+              "tradeoff": "Signing a usage policy, receiving training, etc., before you want to enable access.",
+              "configurationGuidance": "Add a gate before giving access, e.g. signing a policy, requiring training.",
+              "deferred": false
+            },
+            {
+              "id": "review",
+              "label": "Needs Review",
+              "tradeoff": "Do they need to go through an approval gate or have to fulfill certain preconditions?",
+              "deferred": true
+            }
+          ]
+        },
+        {
+          "id": "UG-06",
+          "title": "Policy decision makers",
+          "question": "Who will make the decision about general access and policies?",
+          "scenario": "This is especially useful if Enterprise Owners and AI Policy Decision Makers are not the same team, which is often the case in larger enterprises.",
+          "guidance": "The central enterprise ownership team? A dedicated AI governance team? Organization owners?",
+          "policyIds": [
+            "features.ai-managers",
+            "features.enterprise-policies"
+          ],
+          "options": [
+            {
+              "id": "enterprise",
+              "label": "The central enterprise ownership team",
+              "tradeoff": "Easier, central management.",
+              "configurationGuidance": "The central enterprise ownership team.",
+              "deferred": false
+            },
+            {
+              "id": "ai-managers",
+              "label": "A dedicated AI governance team",
+              "tradeoff": "Without having to grant them enterprise-wide ownership.",
+              "configurationGuidance": "Establish AI Manager.",
+              "deferred": false
+            },
+            {
+              "id": "organizations",
+              "label": "Organization owners",
+              "tradeoff": "More administration overhead compared to enterprise-level assignment.",
+              "configurationGuidance": "Organization owners.",
+              "deferred": false
+            },
+            {
+              "id": "review",
+              "label": "Needs Review",
+              "tradeoff": "Who will make the decision about general access and policies?",
+              "deferred": true
+            }
+          ]
+        },
+        {
+          "id": "UG-07",
+          "title": "Vetted models",
+          "question": "Do you have governance in your company that only allows vetted models to be made available? Or can you always jump to the most recent frontier models immediately?",
+          "scenario": "Some companies are fine with always staying at the cutting edge and allowing developers to use the latest and greatest; other companies prefer, or are even required, to have tighter control as to what is available where and when.",
+          "guidance": "Finding the right balance between governance and developer access.",
+          "policyIds": [
+            "models.enterprise-availability"
+          ],
+          "options": [
+            {
+              "id": "vetted",
+              "label": "Only vetted models",
+              "tradeoff": "Tighter control as to what is available where and when. Too restrictive, and developers can't use the features that make them productive.",
+              "configurationGuidance": "Only allow vetted models to be made available.",
+              "deferred": false
+            },
+            {
+              "id": "latest",
+              "label": "The most recent frontier models immediately",
+              "tradeoff": "Always staying at the cutting edge and allowing developers to use the latest and greatest. Too permissive, and you may not meet your compliance requirements.",
+              "configurationGuidance": "Allow developers to use the latest and greatest.",
+              "deferred": false
+            },
+            {
+              "id": "review",
+              "label": "Needs Review",
+              "tradeoff": "Only vetted models, or the most recent frontier models immediately?",
+              "deferred": true
+            }
+          ]
+        },
+        {
+          "id": "UG-08",
+          "title": "Tools and Clients",
+          "question": "Do different tools and Clients require special approval or vetting before being rolled out?",
+          "scenario": "Different tools and Clients, such as IDEs or the GitHub Copilot App.",
+          "guidance": "Or do you want to enforce the use of certain tools and clients above others?",
+          "policyIds": [
+            "features.enterprise-policies"
+          ],
+          "options": [
+            {
+              "id": "vetted",
+              "label": "Special approval or vetting before being rolled out",
+              "tradeoff": "Tighter control as to what is available where and when.",
+              "configurationGuidance": "Special approval or vetting before being rolled out.",
+              "deferred": false
+            },
+            {
+              "id": "available",
+              "label": "Allow developers to use the latest and greatest",
+              "tradeoff": "Too permissive, and you may not meet your compliance requirements.",
+              "configurationGuidance": "Allow developers to use the latest and greatest.",
+              "deferred": false
+            },
+            {
+              "id": "review",
+              "label": "Needs Review",
+              "tradeoff": "Do different tools and Clients require special approval or vetting?",
+              "deferred": true
+            }
+          ]
+        },
+        {
+          "id": "UG-09",
+          "title": "Preview features",
+          "question": "Are you generally okay with using Preview features, or do you need to only use stable, fully released features?",
+          "scenario": "Some companies are fine with always staying at the cutting edge and allowing developers to use the latest and greatest.",
+          "guidance": "Some companies prefer, or are even required, to have tighter control as to what is available where and when.",
+          "policyIds": [
+            "features.enterprise-policies"
+          ],
+          "options": [
+            {
+              "id": "stable",
+              "label": "Only stable, fully released features",
+              "tradeoff": "Tighter control as to what is available where and when.",
+              "configurationGuidance": "Only use stable, fully released features.",
+              "deferred": false
+            },
+            {
+              "id": "previews",
+              "label": "Okay with using Preview features",
+              "tradeoff": "Always staying at the cutting edge.",
+              "configurationGuidance": "Using Preview features.",
+              "deferred": false
+            },
+            {
+              "id": "review",
+              "label": "Needs Review",
+              "tradeoff": "Preview features or only stable, fully released features?",
+              "deferred": true
+            }
+          ]
+        }
+      ],
+      "lab": {
+        "id": "UG-LAB",
+        "title": "Give a sandbox developer Copilot access",
+        "primaryDecisionId": "UG-01",
+        "requiredSavedDecisionIds": [
+          "UG-01",
+          "UG-02"
+        ],
+        "policyIds": [
+          "access.organization-seats",
+          "access.enterprise-assignment"
+        ],
+        "scopeNote": "One access-configuration exercise based on UG-01. The other choices produce a follow-up configuration checklist; they are not configured or verified by this lab. Unanswered or Needs Review items remain unresolved. Funding and consumption guardrails belong to Billing & Cost Control.",
+        "safety": "Use only assigned test accounts and approved organizations or teams: granting a license can incur charges. Get facilitator approval before any purchase or assignment; otherwise inspect an approved assignment, or choose Proposal only and Blocked if none is available.",
+        "prerequisites": [
+          "A facilitator-approved sandbox, permitted license assignment, and rollback or retention plan.",
+          "An organization owner for organization assignments, or an enterprise owner for the enterprise licensing exercise.",
+          "A designated test developer and a known starting access state. Copilot Free or another license may make a successful response inconclusive about this assignment.",
+          "A supported, prepared VS Code environment signed in as that test developer, with Copilot Chat permitted by the applicable policies."
+        ],
+        "configurationByOption": {
+          "pilot": {
+            "scope": "organization",
+            "requiredRole": "Organization owner",
+            "steps": [
+              "Open the assigned organization on GitHub, choose Settings, then Copilot > Access under Code, planning, and automation.",
+              "Inspect existing assignments first. If a purchase is approved and the controls are shown, choose Allow this organization to assign seats, then Start adding seats.",
+              "Choose Purchase for selected members. In Users and teams, select only the facilitator-approved test user or team.",
+              "Review the exact target and cost with the facilitator. Only with approval, select Continue to purchase and Purchase seats.",
+              "Reopen Access and confirm the intended assignment. Copy this GitHub settings page URL into the canvas so you can reopen it."
+            ]
+          },
+          "organization": {
+            "scope": "organization",
+            "requiredRole": "Organization owner",
+            "steps": [
+              "Use an isolated sandbox organization whose entire membership is approved for this exercise. If this is not available, record Blocked instead of expanding access.",
+              "Open the organization on GitHub, choose Settings, then Copilot > Access.",
+              "Inspect existing assignments. If purchasing is approved and these controls are shown, choose Allow this organization to assign seats, then Start adding seats.",
+              "Choose Purchase for all members. Review the current and future membership implications and cost before approving Purchase seats.",
+              "Reopen Access and confirm the selected organization-wide access approach. Copy this settings page URL into the canvas."
+            ]
+          },
+          "enterprise-users": {
+            "scope": "enterprise",
+            "requiredRole": "Enterprise owner",
+            "steps": [
+              "Confirm the approved test user is invited or provisioned into the enterprise and that Copilot Business assignment is approved.",
+              "Review Policies for enterprise-assigned users before assigning access.",
+              "Open the enterprise, choose Billing and licensing, then Licensing. Next to Copilot, choose Manage.",
+              "Open All members, inspect existing assignments, and only with approval choose Assign licenses, select the test user, then Add licenses.",
+              "Confirm the test user's assignment and copy the licensing page URL into the canvas."
+            ]
+          },
+          "mixed": {
+            "scope": "enterprise",
+            "requiredRole": "Enterprise owner and the relevant organization owners",
+            "steps": [
+              "Map which approved audiences use individual, team or organization-wide assignment, and identify an owner for each route.",
+              "For this one-developer exercise, choose one approved route to inspect; do not roll out every route or expand access to finish the lab.",
+              "For organization assignment, open organization Settings > Copilot > Access and inspect the approved user, team or organization-wide assignment.",
+              "For direct enterprise assignment, open Billing and licensing > Licensing > Copilot > Manage and inspect All members or Enterprise Teams.",
+              "Confirm the route covering the designated developer, record the other routes as follow-up, and copy the inspected licensing or settings page URL."
+            ]
+          },
+          "enterprise-teams": {
+            "scope": "enterprise",
+            "requiredRole": "Enterprise owner",
+            "steps": [
+              "Confirm an existing approved enterprise team, its test membership, and availability of Copilot Business licenses. Review the documented prerequisites, including policies for enterprise-assigned users.",
+              "Open the assigned enterprise, choose Billing and licensing, then Licensing.",
+              "Next to Copilot, choose Manage, then open the Enterprise Teams tab.",
+              "Inspect existing assignments. Only if explicitly approved, select Assign licenses, select the approved team, and choose Add licenses.",
+              "Confirm the intended team assignment and membership. Copy the licensing page URL into the canvas so you can reopen it."
+            ]
+          }
+        },
+        "verification": {
+          "title": "Try Copilot as the test developer",
+          "steps": [
+            "Confirm that the saved access assignment includes the intended test developer, directly or through the approved team.",
+            "In the prepared VS Code environment, verify that you are signed in with the designated test developer account. Do not share credentials in the canvas.",
+            "Open Copilot Chat, choose Ask mode, and ask: Explain a simple JavaScript function that adds two numbers. Use no private code or sensitive context.",
+            "Observe whether a response is returned. If access is unavailable or blocked, record the message category and investigate licensing, authentication, chat policies, and applicable budgets without changing extra policies.",
+            "Compare the observation with the starting access state and saved assignment. A response alone does not prove which license supplied access.",
+            "Record non-sensitive evidence and any follow-up. Follow the facilitator's rollback or retention plan; do not remove shared licenses without approval."
+          ],
+          "expectedResult": "The approved assignment is visible and the designated test developer can complete the permitted chat task. If another access route makes attribution unclear, record that limitation or leave verification incomplete.",
+          "evidencePrompt": "Describe the assignment check, client/account-context check, and developer observation without identities, copied prompts, private code, or credentials.",
+          "documentation": [
+            {
+              "label": "Prepare Copilot in your IDE",
+              "url": "https://docs.github.com/en/copilot/how-tos/copilot-in-your-ide/set-up-copilot/install-copilot-extension"
+            },
+            {
+              "label": "Ask Copilot a question in VS Code",
+              "url": "https://docs.github.com/en/copilot/how-tos/copilot-in-your-ide/chat-with-copilot/chat-in-ide"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "billing-cost-control",
+      "title": "Billing & Cost Control",
+      "description": "Who pays, how is consumption allocated, and how do we prevent unexpected costs?",
+      "subtitle": "Understand, allocate and control AI spending",
+      "durationMinutes": 15,
+      "status": "ready",
+      "scenario": "scenarios/billing-cost-control.md",
+      "verifiedOn": "2026-10-14",
+      "decisions": [
+        {
+          "id": "BC-01",
+          "title": "Who should pay for AI consumption?",
+          "question": "Who should pay for AI consumption?",
+          "scenario": "Your organization has successfully piloted Copilot and wants to expand to hundreds of developers. Finance wants predictable costs, engineering teams want flexibility, and different departments need accountability for their AI consumption.",
+          "guidance": "Choose who owns the pilot's costs, not a new payment connection. Use the approved cost center for attribution; allocation precedence is explained in the policy guidance below.",
+          "policyIds": [
+            "billing.cost-centers"
+          ],
+          "options": [
+            {
+              "id": "central",
+              "label": "Central funding with pilot showback",
+              "tradeoff": "Finance funds the pilot centrally; use one pilot cost center to show consumption without treating attribution as a separate invoice.",
+              "deferred": false
+            },
+            {
+              "id": "department",
+              "label": "Departmental accountability through users or enterprise teams",
+              "tradeoff": "Use a departmental cost center for internal chargeback. Enterprise-team membership stays current automatically; inspect direct assignments and overlapping teams before relying on attribution.",
+              "deferred": false
+            },
+            {
+              "id": "organization",
+              "label": "Allocate through the licensing organization",
+              "tradeoff": "Use an organization-aligned cost center when the licensing boundary matches the funding owner. Multiple license sources and direct assignments can make the expected allocation differ.",
+              "deferred": false
+            },
+            {
+              "id": "review",
+              "label": "Needs Review",
+              "tradeoff": "Keep existing allocation unchanged until Finance agrees the owner and confirms the pilot's membership and licensing source.",
+              "deferred": true
+            }
+          ]
+        },
+        {
+          "id": "BC-02",
+          "title": "How should we control spending?",
+          "question": "How should we control spending?",
+          "scenario": "One pilot developer reaches their individual consumption limit while the shared pool and the team's metered budget still have capacity. Finance asks whether the unused team budget lets that developer continue.",
+          "guidance": "User-level budgets always stop each user's included and metered consumption at their limit; group metered budgets need Stop usage enabled and do not cap license fees or pool consumption. Remaining group budget cannot override a reached user limit; inspect existing overrides and included usage controls without setting zero budgets or enabling paid usage.",
+          "policyIds": [
+            "billing.ai-credit-guardrails"
+          ],
+          "checkpoints": [
+            {
+              "question": "The user-level limit is reached, but the pool and cost-center budget have capacity. Can the user continue?",
+              "answer": "No. The user-level budget always enforces a hard stop across pool and metered consumption. Remaining cost-center budget cannot override it."
+            },
+            {
+              "question": "The pool is exhausted and a cost-center metered budget has reached its limit, but Stop usage is off. Does that budget stop spending?",
+              "answer": "No. That budget only monitors spending. Charges can continue if paid usage is enabled and no other applicable control blocks the user."
+            },
+            {
+              "question": "The pool still has credits and there is no user-level limit. Does a positive cost-center metered budget limit each member's included consumption?",
+              "answer": "No. That budget applies in the metered phase. A user-level budget or separate cost-center included usage control addresses included consumption. Other applicable controls can still block usage."
+            }
+          ],
+          "options": [
+            {
+              "id": "user",
+              "label": "Limit each pilot user's consumption",
+              "tradeoff": "Set a cost-center user-level budget for a per-user hard stop across included and metered usage. It is not the team's total metered-spending cap; inspect any individual overrides.",
+              "deferred": false
+            },
+            {
+              "id": "metered",
+              "label": "Cap the pilot's additional metered spending",
+              "tradeoff": "Use a cost-center budget with Stop usage enabled. It caps the group's metered charges, not individual pool consumption; existing user limits still apply.",
+              "deferred": false
+            },
+            {
+              "id": "layered",
+              "label": "Combine per-user limits and a group metered guardrail",
+              "tradeoff": "Use both a cost-center user-level budget and an enforced cost-center budget. Different protections require checking both scopes and the earliest blocking control.",
+              "deferred": false
+            },
+            {
+              "id": "review",
+              "label": "Needs Review",
+              "tradeoff": "Inspect existing budgets without changing them until Finance approves the amounts, scopes, and enforcement behavior.",
+              "deferred": true
+            }
+          ]
+        },
+        {
+          "id": "BC-03",
+          "title": "How should we track and allocate costs?",
+          "question": "How should we track and allocate costs?",
+          "scenario": "Finance wants a departmental view, while engineering wants to identify high-consumption users and models. Your fresh sandbox has little or no usage, so analysis must distinguish sample data from live evidence.",
+          "guidance": "Use AI usage for consumption by user and model, and metered usage by cost center for attribution. Practice with the fictional worksheet; report fields and API options are optional policy guidance, not another exercise or evidence of engineering impact.",
+          "policyIds": [
+            "billing.usage-reporting"
+          ],
+          "options": [
+            {
+              "id": "dashboard",
+              "label": "Dashboard-led pilot review",
+              "tradeoff": "Review AI consumption and metered allocation at an agreed cadence. Record the period, filters, and missing data before drawing conclusions.",
+              "deferred": false
+            },
+            {
+              "id": "reports",
+              "label": "Exports and a repeatable billing report",
+              "tradeoff": "Use AI and detailed metered reports for reconciliation; evaluate the documented AI credit API for later automation. Handle user-level reports as sensitive data and keep credentials outside the canvas.",
+              "deferred": false
+            },
+            {
+              "id": "review",
+              "label": "Needs Review",
+              "tradeoff": "Use the fictional worksheet now and record who must agree the reporting scope, access, retention, and cadence.",
+              "deferred": true
+            }
+          ]
+        }
+      ],
+      "lab": {
+        "id": "BC-LAB",
+        "title": "Configure a cost center and spending guardrail for your AI pilot",
+        "primaryDecisionId": "BC-02",
+        "requiredDecisionIds": [
+          "BC-01",
+          "BC-02"
+        ],
+        "configuredDecisionIds": [
+          "BC-01",
+          "BC-02"
+        ],
+        "policyIds": [
+          "billing.cost-centers",
+          "billing.ai-credit-guardrails",
+          "billing.usage-reporting"
+        ],
+        "scopeNote": "One shared lab: inspect or configure the approved pilot cost center and the guardrail chosen in BC-02. BC-01 and BC-02 must be resolved before marking configuration complete. BC-03 remains an explored reporting approach, not a deployed integration. Verification checks scope and expected behavior without exhausting a budget.",
+        "safety": "Use only the facilitator-approved sandbox. The facilitator preconfigures the billing connection and approves nonzero amounts, membership, and retention. Do not change payment methods, enable paid usage, remove existing budgets, move shared resources, or generate consumption to reach a limit. Inspect matching controls if changes are not authorized. Use Blocked or proposal-only mode if the required controls are unavailable.",
+        "prerequisites": [
+          "An enterprise owner or enterprise billing manager for this exercise, with a preconfigured billing connection and permitted AI budget controls.",
+          "A dedicated pilot cost center or permission to create one, approved test users or an existing enterprise team, and known licensing and allocation sources.",
+          "Facilitator-approved nonzero budget amounts and a record of existing user-level overrides, metered budgets, paid-usage policy, and included usage controls. Never enable overage merely to expose a budget option.",
+          "The fictional consumption worksheet below for a fresh sandbox; it is not live billing evidence. Completing User Governance in this canvas is not required if the sandbox already has approved pilot licenses.",
+          "A rollback or retention plan owned by the facilitator. Do not delete a shared budget or cost center as cleanup."
+        ],
+        "commonSteps": [
+          "Open the assigned enterprise, then Billing and licensing > Cost centers. Inspect the approved pilot cost center first.",
+          "Apply BC-01: for central funding, use the approved centrally funded pilot cost center; for departmental accountability, use the approved department's pilot cost center and its users or enterprise team; for organization allocation, use only an isolated, approved licensing organization.",
+          "If creation is authorized, select New cost center, enter the approved name, and choose the approved Resources. Inspect any move warning: a resource belongs to one cost center, so do not move an existing shared resource. Do not add or change an Azure subscription. Review with the facilitator, then Create cost center.",
+          "Confirm pilot membership: direct user assignment wins over a conflicting team assignment; among conflicting teams, the team created first applies. Inspect existing membership without changing shared resources.",
+          "Open Billing & Licensing > Budgets and alerts and follow the selected guardrail steps below. If the required controls are unavailable, record Blocked instead of enabling paid usage; otherwise save the confirmed budget page URL."
+        ],
+        "configurationByOption": {
+          "user": {
+            "scope": "enterprise",
+            "requiredRole": "Enterprise owner or enterprise billing manager",
+            "steps": [
+              "Inspect an existing matching budget, or with approval choose New budget > Bundled AI credits budget.",
+              "Choose Users under Budget scope, then select the approved pilot cost center to set one per-user amount for its current and future members. Do not leave the user field empty, which would create a universal budget.",
+              "Review individual overrides for pilot users: an individual budget takes precedence over the cost-center default. Use the facilitator-approved nonzero amount; this budget always hard-stops and has no optional Stop usage toggle.",
+              "Review the exact users, amount, and any approved alert recipients, then Create budget only with facilitator approval. Reopen and inspect it. Record that this is per-user consumption protection, not a total group metered-spending cap."
+            ]
+          },
+          "metered": {
+            "scope": "enterprise",
+            "requiredRole": "Enterprise owner or enterprise billing manager",
+            "steps": [
+              "Inspect an existing matching budget, or with approval choose New budget > Bundled AI credits budget.",
+              "Choose Cost center under Budget scope and select the approved pilot cost center, not Users, Organization, or Enterprise.",
+              "Set the facilitator-approved nonzero amount and explicitly select Stop usage when budget limit is reached. Confirm any alert recipients separately; alerts do not enforce the limit.",
+              "Review with the facilitator before Create budget, then reopen and verify the scope and enforcement. Record that this controls the pilot's metered charges after pool exhaustion, not each member's included consumption or license fees. Inspect wider enterprise and user controls without changing them."
+            ]
+          },
+          "layered": {
+            "scope": "enterprise",
+            "requiredRole": "Enterprise owner or enterprise billing manager",
+            "steps": [
+              "Inspect or, with approval, create a Bundled AI credits budget with Users scope and the pilot cost center selected. Set the approved nonzero per-user amount; review individual overrides. User-level budgets always hard-stop.",
+              "Separately inspect or, with approval, create a Bundled AI credits budget with Cost center scope for the same pilot. Set the approved nonzero group metered amount and explicitly enable Stop usage when budget limit is reached.",
+              "Review both scopes and amounts with the facilitator before saving. Do not add a duplicate budget if an approved matching one exists. Reopen both records.",
+              "Record which protection applies during included usage and which applies to metered charges. A reached user-level limit cannot be supplemented by the group's remaining budget. Inspect other applicable controls and explain the earliest possible block."
+            ]
+          }
+        },
+        "verification": {
+          "title": "Verify allocation, coverage, and stopping behavior",
+          "navigationLabel": "Verify guardrails",
+          "attestation": "I inspected the pilot membership and guardrail, explained its scope and stopping behavior, and distinguished sample analysis from live data.",
+          "steps": [
+            "Compare the cost-center resources with the approved pilot. Explain whether direct users, enterprise-team membership, or the licensing organization determines allocation; note any precedence conflict.",
+            "Inspect the saved guardrail's scope, nonzero amount, and enforcement. For user-level budgets, identify the effective override and both included and metered coverage. For group metered budgets, confirm Stop usage is enabled and explain that license fees and pool consumption are not capped by that budget.",
+            "Without issuing an AI request, predict what happens when the effective user limit is reached, and when metered spending reaches an enforced group limit. Explain why alerts alone are not a spending stop. Inspect other applicable controls before claiming the selected budget is the only limit.",
+            "Open the enterprise's Billing & Licensing > Usage > AI usage. Inspect the available time period, users, and model consumption. Use Metered usage grouped or filtered by cost center to inspect attribution. Record an empty view as missing live data, not proof of zero cost.",
+            "Use the fictional worksheet below even when the sandbox is empty. Identify the highest consumer and model, compare gross and net amounts, and state what the data cannot prove about engineering impact.",
+            "Record scope, coverage, enforcement, data source, and limitations in evidence. Mark verified only after inspecting the real approved cost center and guardrail. Sample analysis alone, missing permissions, or unavailable controls must remain unverified."
+          ],
+          "sampleData": {
+            "title": "Fictional pilot consumption worksheet",
+            "notice": "Synthetic teaching data for one fictional billing period. Pilot users, model labels, attribution, and amounts are invented, not a GitHub export schema, model price list, or your sandbox's bill. Amounts are USD; consumption is AI credits.",
+            "columns": [
+              "Pilot user",
+              "Cost center",
+              "Model",
+              "AI credits",
+              "Gross USD",
+              "Discount USD",
+              "Net USD"
+            ],
+            "rows": [
+              [
+                "Pilot A",
+                "Engineering",
+                "Model X",
+                "600",
+                "6.00",
+                "6.00",
+                "0.00"
+              ],
+              [
+                "Pilot B",
+                "Engineering",
+                "Model Y",
+                "1400",
+                "14.00",
+                "10.00",
+                "4.00"
+              ],
+              [
+                "Pilot C",
+                "Research",
+                "Model Y",
+                "1000",
+                "10.00",
+                "8.00",
+                "2.00"
+              ]
+            ],
+            "question": "Which user and model account for the most consumption? How much is attributed to each department, and why is total consumption not the same as the bill?",
+            "answer": "Pilot B consumes the most: 1,400 AI credits. Model Y totals 2,400 credits versus Model X's 600. Engineering totals 2,000 credits and $4 net; Research totals 1,000 credits and $2 net. Across the worksheet, $30 gross minus $24 discounts equals $6 net. These fictional numbers do not prove adoption quality, model efficiency, or engineering impact, and do not verify any live guardrail."
+          },
+          "expectedResult": "The approved pilot cost center and selected guardrail are visible. The participant identifies the effective users, covered consumption, enforcement behavior, and any overrides, and labels the worksheet analysis as synthetic. No budget exhaustion or additional consumption is needed.",
+          "evidencePrompt": "Record the pilot scope without identities, allocation basis, effective budget type and coverage, Stop usage state or mandatory user hard stop, predicted limit behavior, live-data availability, and synthetic worksheet findings. Do not paste bills, user reports, credentials, or private data.",
+          "documentation": [
+            {
+              "label": "Cost center setup",
+              "url": "https://docs.github.com/en/billing/how-tos/products/use-cost-centers"
+            },
+            {
+              "label": "Cost center allocation and precedence",
+              "url": "https://docs.github.com/en/billing/reference/cost-center-allocation"
+            },
+            {
+              "label": "Budget coverage and enforcement",
+              "url": "https://docs.github.com/en/copilot/concepts/billing-and-usage/organizations-and-enterprises/budgets"
+            },
+            {
+              "label": "AI usage and report navigation",
+              "url": "https://docs.github.com/en/billing/how-tos/products/view-productlicense-use"
+            },
+            {
+              "label": "Billing report fields",
+              "url": "https://docs.github.com/en/billing/reference/billing-reports"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "agent-governance",
+      "title": "Agent Governance",
+      "description": "Control where agents operate and what they can access.",
+      "status": "ready",
+      "scenario": "scenarios/agent-governance.md",
+      "decisions": [
+        {
+          "id": "AG-01",
+          "title": "Agent operating scope",
+          "question": "Where should agents operate?",
+          "scenario": "Developers want Copilot agents to implement issues, create pull requests and connect to external tools. Security requires clear boundaries.",
+          "guidance": "This choice concerns Copilot cloud agent: enterprise enablement and organization repository access are separate controls. The lab checks scope, not licenses, models or spending policies.",
+          "policyIds": [
+            "agent.cloud-availability",
+            "agent.repository-safeguards"
+          ],
+          "options": [
+            {
+              "id": "all",
+              "label": "All eligible organizations",
+              "tradeoff": "Broader availability still depends on user eligibility, repository access and safeguards. Do not expand production access for this exercise.",
+              "deferred": false
+            },
+            {
+              "id": "pilot",
+              "label": "Selected pilot organizations",
+              "tradeoff": "Start with an approved organization and inspect its permitted repositories before running a small task.",
+              "deferred": false
+            },
+            {
+              "id": "disabled",
+              "label": "Disable until approved",
+              "tradeoff": "Keep cloud agent unavailable in the intended scope. Verify the restriction without enabling an agent just to finish.",
+              "deferred": false
+            },
+            {
+              "id": "review",
+              "label": "Needs Review",
+              "tradeoff": "Leave existing policy unchanged and record the scope or approval that is missing.",
+              "deferred": true
+            }
+          ]
+        },
+        {
+          "id": "AG-02",
+          "title": "External tool boundaries",
+          "question": "What external tools should agents access?",
+          "scenario": "The pilot needs tools and data beyond its code repository. Security wants each connection and its permissions reviewed.",
+          "guidance": "Record an external-tool proposal, not a universal toggle: cloud agent uses its MCP policy, repository configuration and custom agent tools. Registry restrictions and managed-settings.json allowlists for Copilot app and CLI are not cloud agent controls.",
+          "policyIds": [
+            "agent.cloud-mcp",
+            "agent.client-managed-settings"
+          ],
+          "options": [
+            {
+              "id": "approved",
+              "label": "Approved MCP servers only",
+              "tradeoff": "Review servers, individual tools and credentials for the target surface; favor only necessary read-only tools.",
+              "deferred": false
+            },
+            {
+              "id": "broader",
+              "label": "Broader tool access under existing policy",
+              "tradeoff": "Use the existing reviewed policy without treating broad access as permission to add arbitrary tools or credentials.",
+              "deferred": false
+            },
+            {
+              "id": "disabled",
+              "label": "Disable external tools",
+              "tradeoff": "Propose blocking third-party integrations; built-in servers are a separate consideration. This lab does not change MCP settings.",
+              "deferred": false
+            },
+            {
+              "id": "review",
+              "label": "Needs Review",
+              "tradeoff": "Do not add integrations until the tool owner, data scope and supported controls are agreed.",
+              "deferred": true
+            }
+          ]
+        }
+      ],
+      "lab": {
+        "id": "AG-LAB",
+        "title": "Bound a cloud agent pilot",
+        "primaryDecisionId": "AG-01",
+        "primaryChoiceLabel": "agent-scope",
+        "inspectionLabel": "Complete - inspected existing agent policy",
+        "configurationConfirmation": "Choose Complete only after inspecting the actual policy and intended scope, including an intentionally disabled policy. Prepared evidence is not configuration: choose Prepared fallback and Blocked or Not started. Changing mode, target or status clears verification.",
+        "policyIds": [
+          "agent.cloud-availability",
+          "agent.repository-safeguards",
+          "agent.cloud-mcp",
+          "agent.client-managed-settings"
+        ],
+        "scopeNote": "One cloud-agent scope exercise for AG-01. AG-02 remains a proposal, not configured or verified by this lab. Enabling an agent does not grant unrestricted access.",
+        "safety": "Use only a facilitator-approved sandbox. Get approval before any policy change or task execution. Do not add credentials, external tools, bypass permissions or automatic workflow approval. If live practice is unavailable, select Prepared fallback and record observations without claiming live configuration or verification.",
+        "prerequisites": [
+          "An approved sandbox enterprise and pilot organization, an eligible test developer, and a permitted test repository.",
+          "An enterprise owner or AI manager for enterprise policy, an organization owner for repository access, and repository write access for the test developer.",
+          "A facilitator-approved benign issue, such as adding a README example; keep production data and secrets out of the task.",
+          "An agreed retention or rollback plan. Use the prepared read-only session below if access, approval or time is unavailable."
+        ],
+        "configurationByOption": {
+          "pilot": {
+            "scope": "enterprise",
+            "requiredRole": "Enterprise owner or AI manager; organization owner for repository access",
+            "steps": [
+              "Open the approved enterprise on GitHub, then AI controls > Agents. Under Available agents, choose Copilot Cloud Agent.",
+              "Inspect the policy first. Only with approval, select Enabled for selected organizations and choose the approved pilot organization individually. Leave other organizations unchanged.",
+              "With the organization owner, open organization Settings > Copilot > Cloud agent. Inspect Repository access and confirm whether the prepared repository is permitted.",
+              "Inspect the repository's existing branch protection, rulesets and required checks. In repository Settings > Copilot > MCP servers, inspect configured tools without editing them. Record any blocker; do not add a bypass.",
+              "Reopen the enterprise policy, confirm the saved scope, and paste that settings page URL below. Continue to Verify for the prepared task or read-only fallback."
+            ]
+          },
+          "all": {
+            "scope": "enterprise",
+            "requiredRole": "Enterprise owner or AI manager; organization owner for repository access",
+            "steps": [
+              "Open the approved enterprise, then AI controls > Agents > Copilot Cloud Agent.",
+              "Inspect the enterprise-wide enabled policy. Configure it only in a fully isolated enterprise where every organization is explicitly approved; otherwise record a proposal or use Prepared fallback.",
+              "With the organization owner, inspect organization Settings > Copilot > Cloud agent > Repository access for the prepared test repository.",
+              "Inspect repository branch protection, rulesets, required checks and Settings > Copilot > MCP servers. Do not relax safeguards or expand tool permissions.",
+              "Confirm the actual saved scope and paste the enterprise settings page URL. The Verify task samples one approved repository; it does not prove availability in every organization."
+            ]
+          },
+          "disabled": {
+            "scope": "enterprise",
+            "requiredRole": "Enterprise owner or AI manager; organization owner for repository access",
+            "steps": [
+              "Open the approved enterprise, then AI controls > Agents > Copilot Cloud Agent.",
+              "Inspect the disabled policy. Change it only with explicit sandbox approval; otherwise keep existing settings and record Blocked if they do not match.",
+              "Inspect organization Settings > Copilot > Cloud agent > Repository access with the organization owner. Record how this differs from the enterprise policy.",
+              "Inspect the prepared repository's branch protection, rulesets and MCP configuration without changing safeguards. Do not start an agent task.",
+              "Confirm the disabled policy and intended scope, then paste the actual enterprise settings page URL. Verification should confirm unavailability, not require a successful agent run."
+            ]
+          }
+        },
+        "verification": {
+          "title": "Verify agent scope and safeguards",
+          "taskLabel": "Agent verification task",
+          "nextLabel": "Verify agent boundaries",
+          "attestation": "I checked the actual policy, intended developer/repository scope and safeguard outcome. For a disabled policy I confirmed unavailability, not a successful run. Prepared evidence alone is not live verification.",
+          "steps": [
+            "Confirm the saved enterprise policy, pilot membership and repository access with the appropriate owners. Check the intended test developer's eligibility and write access; do not use another account to work around a restriction.",
+            "If AG-01 is Disable until approved, confirm that cloud agent is unavailable for the intended developer and repository. Do not start work or enable it; record the policy and observation.",
+            "Otherwise, only when approved and available, start the prepared small task from the repository's agents panel or issue workflow. Request a README example and a pull request, with no new dependencies, tools or secrets. If unavailable, record the blocker and use Prepared fallback from Configure.",
+            "Spend at most two minutes checking the session or resulting PR for the intended repository, proposed changes, tests and required review. If the result is not ready, use Prepared fallback rather than waiting; workflow approval is configurable, so inspect the actual setting and do not approve or merge.",
+            "Compare the observed outcome with the policy and existing repository safeguards. An incompatible rule can block the agent even when enabled. Record a blocker rather than weakening the rule.",
+            "Record non-sensitive evidence and follow-up. In Prepared fallback mode, review the supplied session snapshot and leave live verification incomplete."
+          ],
+          "expectedResult": "For an enabled scope, the intended developer can use the permitted repository and explain its remaining safeguards. For a disabled scope, the agent remains unavailable. A prepared session teaches these boundaries but cannot establish today's live availability or configuration.",
+          "evidencePrompt": "State whether you inspected a live enabled scope, live disabled scope, or prepared fallback. Describe the scope check and a repository safeguard, plus any blocked step. Do not include identities, private code, credentials or copied session logs.",
+          "fallback": {
+            "title": "Prepared session - fictional read-only example",
+            "notice": "This supplied snapshot is a teaching fixture, not a real session, PR or evidence of your sandbox. Select Prepared fallback on Configure and keep configuration Blocked or Not started. A facilitator may also show a sanitized previously prepared session or PR; it is still not live verification.",
+            "observations": [
+              "Task: Add a short README usage example in the fictional pilot repository. No external tools were requested.",
+              "Recorded setup: The example organization was selected for cloud agent, and its repository access allowed the test repository.",
+              "Recorded session: The agent proposed a README-only change on a copilot/ branch and reported a successful local documentation check.",
+              "Recorded PR: Draft, not merged. Required review was still outstanding, and the workflow awaited human approval in this example.",
+              "Discuss: Which observation shows scope, which shows a safeguard, and what live policy and repository checks are still missing? If your chosen scope is disabled, why must you not start this task?"
+            ]
+          },
+          "documentation": [
+            {
+              "label": "Enterprise cloud agent scope",
+              "url": "https://docs.github.com/en/enterprise-cloud@latest/copilot/how-tos/administer-copilot/manage-for-enterprise/manage-agents/enable-copilot-cloud-agent"
+            },
+            {
+              "label": "Organization repository access",
+              "url": "https://docs.github.com/en/copilot/how-tos/administer-copilot/manage-for-organization/add-copilot-cloud-agent"
+            },
+            {
+              "label": "Cloud agent repository compatibility",
+              "url": "https://docs.github.com/en/copilot/concepts/copilot-surfaces/copilot-on-github"
+            },
+            {
+              "label": "Review cloud agent output",
+              "url": "https://docs.github.com/en/copilot/how-tos/copilot-on-github/use-copilot-agents/review-copilot-output"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "context-management",
+      "title": "Context Management",
+      "description": "Guide AI behaviour and protect sensitive information.",
+      "status": "ready",
+      "scenario": "scenarios/context-instructions.md",
+      "decisions": [
+        {
+          "id": "CM-01",
+          "title": "Engineering standards",
+          "question": "How should AI follow engineering standards?",
+          "scenario": "Engineering teams have different coding standards and sensitive information. Copilot needs relevant guidance while respecting organizational boundaries.",
+          "guidance": "Use shared instructions for common standards and supported path-specific instructions for local differences. Instructions guide behaviour but are not security boundaries; review generated changes rather than assuming compliance.",
+          "policyIds": [
+            "context.repository-instructions",
+            "context.advanced-instructions"
+          ],
+          "options": [
+            {
+              "id": "shared",
+              "label": "Shared repository instructions",
+              "tradeoff": "Give the prepared repository a common baseline in .github/copilot-instructions.md. Review and maintain the standards with its owners.",
+              "deferred": false
+            },
+            {
+              "id": "scoped",
+              "label": "Path-specific or team-owned instructions",
+              "tradeoff": "Agree a shared baseline with team owners, then consider supported path-specific guidance for differing code areas. The primary exercise still edits the shared instructions file.",
+              "deferred": false
+            },
+            {
+              "id": "review",
+              "label": "Needs Review",
+              "tradeoff": "Record the missing standards or owner agreement before changing instructions.",
+              "deferred": true
+            }
+          ]
+        },
+        {
+          "id": "CM-02",
+          "title": "Sensitive information",
+          "question": "How should sensitive information be protected?",
+          "scenario": "Teams need useful project context without exposing sensitive information. Decide which access controls and supported exclusion policies require review.",
+          "guidance": "Repository permissions control access; instructions asking AI not to read a file do not. Content exclusion support varies by client and mode, so check the current support matrix and limitations before relying on it.",
+          "policyIds": [
+            "context.repository-access",
+            "context.content-exclusion"
+          ],
+          "options": [
+            {
+              "id": "access",
+              "label": "Repository access restrictions",
+              "tradeoff": "Review who can access sensitive repositories with the repository administrator. This is separate from Copilot license assignment and cloud-agent availability.",
+              "deferred": false
+            },
+            {
+              "id": "exclusions",
+              "label": "Supported content exclusion policies",
+              "tradeoff": "Use exclusions only where the documented client and mode support them. They do not replace repository permissions or protect every agent.",
+              "deferred": false
+            },
+            {
+              "id": "combined",
+              "label": "Combine both where applicable",
+              "tradeoff": "Review repository access and add exclusions for supported surfaces where appropriate. Keep sensitive data out of this exercise.",
+              "deferred": false
+            },
+            {
+              "id": "review",
+              "label": "Needs Review",
+              "tradeoff": "Keep controls unchanged and record the client, mode, data owner or access review still needed.",
+              "deferred": true
+            }
+          ]
+        }
+      ],
+      "lab": {
+        "id": "CM-LAB",
+        "title": "Compare repository instructions",
+        "primaryDecisionId": "CM-01",
+        "primaryChoiceLabel": "engineering-standards",
+        "targetKind": "repository",
+        "targetLabel": "Confirmed sandbox GitHub repository URL",
+        "targetLinkLabel": "Open confirmed GitHub repository",
+        "targetHelp": "Open the facilitator-approved repository and paste its root page URL, not a settings or file URL. Only HTTPS github.com repository URLs without query parameters or fragments are accepted; the canvas does not inspect repository access.",
+        "changedLabel": "Complete - saved repository instructions",
+        "inspectionLabel": "Complete - inspected matching repository instructions",
+        "configurationConfirmation": "Choose Complete only after saving or inspecting the agreed instructions and recording a baseline task result. This records instructions preparation, not security configuration; changing mode, target or status clears verification.",
+        "policyIds": [
+          "context.repository-instructions",
+          "context.advanced-instructions",
+          "context.repository-access",
+          "context.content-exclusion"
+        ],
+        "scopeNote": "One before-and-after instructions exercise for CM-01. CM-02 is explored only: this lab does not change or verify repository permissions or content exclusions.",
+        "safety": "Use only a facilitator-approved sample repository with fictional data, never this workshop repository. Instructions guide behaviour but are not security boundaries; do not test restrictions with secrets or bypass existing controls.",
+        "prerequisites": [
+          "A prepared JavaScript repository with src/slug.js, a small test suite and a facilitator-approved starting copy.",
+          "An authorized developer with permission to edit the sample instructions and an available Copilot Chat client.",
+          "Use prepared VS Code Chat with repository instructions enabled and confirm support in the linked IDE guide; do not assume all clients behave alike.",
+          "Agree the standards and preserve a non-sensitive baseline outside the repository; if access is unavailable, choose Proposal only and Blocked."
+        ],
+        "configurationByOption": {
+          "shared": {
+            "scope": "repository",
+            "requiredRole": "Authorized sample-repository contributor with permission to edit instructions",
+            "steps": [
+              "Open the prepared repository in the agreed client and inspect existing instructions with its owner.",
+              "Before editing instructions, ask Copilot: Implement slugify(text) in src/slug.js: trim, lowercase, replace runs of non-alphanumeric characters with a hyphen, trim edge hyphens, and return an empty string when no characters remain. Record the generated changes and test report without copying private code.",
+              "Create or edit .github/copilot-instructions.md with these agreed standards: named exports and camelCase; no new dependencies; tests for empty input and punctuation; report the test command and actual result (or say tests were not run).",
+              "Save the instructions and confirm their contents, preserving existing relevant guidance. Keep a clean copy of the same starting coding task for the fresh-session comparison.",
+              "Paste the approved repository root URL and record preparation as Complete only when the baseline and instructions are ready. Continue to Verify; no data-access control was configured."
+            ]
+          },
+          "scoped": {
+            "scope": "repository",
+            "requiredRole": "Authorized sample-repository contributor with team-owner agreement",
+            "steps": [
+              "Open the prepared repository with its team owner and agree which standards belong in the shared baseline.",
+              "Before editing instructions, ask Copilot: Implement slugify(text) in src/slug.js: trim, lowercase, replace runs of non-alphanumeric characters with a hyphen, trim edge hyphens, and return an empty string when no characters remain. Record the generated changes and test report.",
+              "Create or edit .github/copilot-instructions.md with the team-owned baseline: named exports and camelCase; no new dependencies; tests for empty input and punctuation; report the test command and actual result (or say tests were not run).",
+              "Save and inspect the shared instructions, preserving relevant existing guidance, and prepare a clean copy of the same starting task. Optional path-specific instructions and AGENTS.md are references in the closed guidance panel, not a second exercise.",
+              "Paste the approved repository root URL and record Complete only when the baseline and instructions are ready. The Verify task evaluates the shared baseline, not every team's path-specific rules."
+            ]
+          }
+        },
+        "verification": {
+          "title": "Evaluate instruction adherence",
+          "taskLabel": "Fresh-session comparison task",
+          "nextLabel": "Compare generated changes",
+          "attestation": "I repeated the task in a fresh session, reviewed the generated changes against the standards, and recorded matches or deviations. This completes an evaluation, not proof of guaranteed compliance or enforced data-access restrictions.",
+          "steps": [
+            "Start a fresh Copilot Chat session in the prepared repository with the saved instructions and the same starting coding task. Repeat the identical slugify prompt from Configure.",
+            "Check the response References list for .github/copilot-instructions.md in the prepared VS Code Chat client. If it is missing, investigate instruction enablement and record the uncertainty rather than assuming the file was used.",
+            "Compare baseline and new changes against named exports, camelCase, no added dependencies, edge-case tests and an accurate test report. Run the prepared sample's node --test command where approved and distinguish observed results from Copilot's report.",
+            "Record which standards were followed or missed and any follow-up with the owner. Outputs need not be identical, and custom instructions do not guarantee compliance.",
+            "Explain why instructions are guidance while repository permissions restrict access. Identify the intended client and mode for any CM-02 exclusion proposal; this exercise did not configure or verify those restrictions."
+          ],
+          "expectedResult": "Participants can evaluate generated changes against agreed standards and explain the difference between guidance and access restrictions. An observed deviation is a meaningful evaluation outcome, not a reason to claim guaranteed compliance.",
+          "evidencePrompt": "Record the client and mode, instruction-reference observation, standards met or missed, test result and comparison with the baseline. State that access restrictions and exclusions were not verified; use no private code or sensitive data.",
+          "documentation": [
+            {
+              "label": "Repository instructions in VS Code and other IDEs",
+              "url": "https://docs.github.com/en/copilot/how-tos/copilot-in-your-ide/customize-copilot/configure-custom-instructions/add-repository-instructions-in-your-ide"
+            },
+            {
+              "label": "Custom instructions and non-deterministic responses",
+              "url": "https://docs.github.com/en/copilot/concepts/prompting/response-customization"
+            },
+            {
+              "label": "Content exclusion support and limitations",
+              "url": "https://docs.github.com/en/copilot/concepts/security-governance-and-network-settings/content-exclusion"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "observability",
+      "title": "Observability",
+      "description": "Measure AI adoption, usage and agent activity.",
+      "status": "ready",
+      "scenario": "scenarios/observability.md",
+      "decisions": [
+        {
+          "id": "OB-01",
+          "title": "Measuring success",
+          "question": "How should we measure success?",
+          "scenario": "Your organization has deployed Copilot to 250 developers. Leadership wants evidence of adoption and value, while administrators need visibility into agent activity.",
+          "guidance": "Active users and engagement describe usage, not business value. Pair usage with engineering outcomes and developer feedback; a trend or association alone does not prove Copilot caused an improvement.",
+          "policyIds": [
+            "observability.usage-metrics",
+            "observability.license-data"
+          ],
+          "options": [
+            {
+              "id": "adoption",
+              "label": "Adoption and engagement",
+              "tradeoff": "Track who uses Copilot and how usage changes. This helps identify enablement needs but does not establish engineering value.",
+              "deferred": false
+            },
+            {
+              "id": "outcomes",
+              "label": "Engineering outcomes",
+              "tradeoff": "Review delivery, quality and developer experience against a baseline. Explain what usage coverage is missing before attributing outcomes to AI.",
+              "deferred": false
+            },
+            {
+              "id": "both",
+              "label": "Both, with regular reviews",
+              "tradeoff": "Review adoption alongside engineering outcomes and feedback. Agree a review owner and next action rather than treating activity as value.",
+              "deferred": false
+            },
+            {
+              "id": "review",
+              "label": "Needs Review",
+              "tradeoff": "Record the missing success criteria or review owner before adopting a measurement plan.",
+              "deferred": true
+            }
+          ]
+        },
+        {
+          "id": "OB-02",
+          "title": "Investigating activity",
+          "question": "How should we investigate AI activity?",
+          "scenario": "An administrator needs to understand an example agent action. Aggregate adoption figures cannot explain what happened in one session.",
+          "guidance": "Use usage reports for trends, and agent sessions plus audit logs for supported activity investigations. Audit logs do not contain local client prompts; do not assume every client interaction is visible there.",
+          "policyIds": [
+            "observability.usage-metrics",
+            "observability.agent-activity"
+          ],
+          "options": [
+            {
+              "id": "dashboards",
+              "label": "Usage dashboards",
+              "tradeoff": "Find adoption and usage patterns. Aggregate trends alone do not reconstruct an individual agent action.",
+              "deferred": false
+            },
+            {
+              "id": "sessions",
+              "label": "Agent sessions and audit logs",
+              "tradeoff": "Review supported session activity and GitHub-side actions. Local client prompts are outside the enterprise audit log.",
+              "deferred": false
+            },
+            {
+              "id": "combined",
+              "label": "Combined monitoring approach",
+              "tradeoff": "Use trends to frame questions and session/audit evidence to investigate actions. Check coverage and permissions before drawing conclusions.",
+              "deferred": false
+            },
+            {
+              "id": "review",
+              "label": "Needs Review",
+              "tradeoff": "Record the investigation owner or data-access question still needing review.",
+              "deferred": true
+            }
+          ]
+        }
+      ],
+      "lab": {
+        "id": "OB-LAB",
+        "title": "Review fictional adoption and agent activity",
+        "exerciseKind": "sample-analysis",
+        "primaryDecisionId": "OB-01",
+        "primaryChoiceLabel": "measurement",
+        "stepsLabel": "Sample analysis steps",
+        "inspectionLabel": "Complete - reviewed fictional dataset",
+        "configurationConfirmation": "Configure records sample review only. Choose Complete after reviewing the supplied dataset; no settings URL, historical sandbox metrics or live GitHub changes are required. Verify separately records your analysis and next action.",
+        "policyIds": [
+          "observability.usage-metrics",
+          "observability.license-data",
+          "observability.agent-activity"
+        ],
+        "scopeNote": "One fictional-data analysis exercise. Completion does not configure monitoring, prove business value or verify live GitHub activity. Financial chargeback configuration stays in Billing & Cost Control; agent permissions and context controls stay in their existing sections.",
+        "safety": "FICTIONAL DATA ONLY: no live account data is fetched or changed. Do not expect historical metrics in a fresh sandbox. Use only fictional identifiers in notes and exports.",
+        "prerequisites": [
+          "Use the supplied fictional dataset; no sandbox history, GitHub permissions or agent execution is required.",
+          "Agree a measurement approach in OB-01 and an investigation approach in OB-02.",
+          "Official references explain where real data is available; visiting them does not mean this canvas has connected to your enterprise."
+        ],
+        "configurationByOption": {
+          "adoption": {
+            "scope": "organization",
+            "requiredRole": "Workshop participant; fictional data needs no GitHub access",
+            "steps": [
+              "Review all four weeks of sample metrics and the sample agent audit events below.",
+              "Identify one adoption challenge and select its supporting metric reference in Verify.",
+              "Investigate one sample agent event: name the observation, what remains unknown, and a safe follow-up.",
+              "Recommend one governance improvement. Explain why usage alone is not evidence of engineering value.",
+              "Review the official real-data locations in Verify, then record supporting evidence and a next action. Mark sample review complete here only after reading the dataset."
+            ]
+          },
+          "outcomes": {
+            "scope": "organization",
+            "requiredRole": "Workshop participant; fictional data needs no GitHub access",
+            "steps": [
+              "Review all four weeks of sample metrics and sample agent audit events; no engineering outcome baseline is included.",
+              "Identify one adoption challenge and select its supporting metric reference in Verify.",
+              "Investigate one sample agent event: name the observation, what remains unknown, and a safe follow-up.",
+              "Recommend one governance improvement and name an engineering outcome or feedback measure needed before claiming value.",
+              "Review the official real-data locations in Verify, then record supporting evidence and a next action. Mark sample review complete here only after reading the dataset."
+            ]
+          },
+          "both": {
+            "scope": "organization",
+            "requiredRole": "Workshop participant; fictional data needs no GitHub access",
+            "steps": [
+              "Review all four weeks of sample metrics and the sample agent audit events below.",
+              "Identify one adoption challenge and select its supporting metric reference in Verify.",
+              "Investigate one sample agent event: name the observation, what remains unknown, and a safe follow-up.",
+              "Recommend one governance improvement and a regular review combining usage, engineering outcomes and feedback.",
+              "Review the official real-data locations in Verify, then record supporting evidence and a next action. Mark sample review complete here only after reading the dataset."
+            ]
+          }
+        },
+        "sample": {
+          "notice": "Every number, identifier and event below is invented for this workshop. These plain-language audit examples are not exported GitHub records or API schemas. Weekly users are unique within each invented week; agent users are a subset of active users, not an extra population. Weeks must not be added together.",
+          "metrics": [
+            "M-01 | Week 1: 250 licensed users; 180 active Copilot users (72%); 30 agent users; 900 chat interactions.",
+            "M-02 | Week 2: 250 licensed users; 170 active Copilot users (68%); 40 agent users; 1020 chat interactions.",
+            "M-03 | Week 3: 250 licensed users; 150 active Copilot users (60%); 50 agent users; 1100 chat interactions.",
+            "M-04 | Week 4: 250 licensed users; 140 active Copilot users (56%); 60 agent users; 1120 chat interactions.",
+            "Trend: active users fell from 180 to 140 while agent users rose from 30 to 60. Week 4 has 110 licensed users with no observed activity in this fictional dataset. More interactions do not establish better quality, faster delivery or causal business value."
+          ],
+          "events": [
+            "E-01 | Week 4, Monday 09:10 UTC | Sample session S-01 | Fictional user Pilot-A | Agent opened a draft change to add missing tests in sample-repo; human review is pending.",
+            "E-02 | Week 4, Tuesday 14:20 UTC | Sample session S-02 | Fictional user Pilot-B | Agent proposed a dependency change in sample-repo. The exercise record does not include owner approval or test results; investigate rather than assuming a policy violation.",
+            "E-03 | Week 4, Tuesday 14:35 UTC | Sample session S-02 | Fictional reviewer Pilot-C | Reviewer requested justification and test evidence for the dependency change; no merge outcome is supplied."
+          ],
+          "fields": [
+            {
+              "id": "metricReference",
+              "label": "Supporting sample metric",
+              "prompt": "Select the fictional week supporting your adoption challenge.",
+              "options": [
+                "M-01",
+                "M-02",
+                "M-03",
+                "M-04"
+              ]
+            },
+            {
+              "id": "adoptionChallenge",
+              "label": "Adoption challenge",
+              "prompt": "Identify one challenge using the selected week's numbers or the trend. Separate observation from hypotheses such as training needs or missing telemetry."
+            },
+            {
+              "id": "eventReference",
+              "label": "Investigated sample event",
+              "prompt": "Select one fictional event. These identifiers are workshop references, not GitHub event names.",
+              "options": [
+                "E-01",
+                "E-02",
+                "E-03"
+              ]
+            },
+            {
+              "id": "agentInvestigation",
+              "label": "Agent activity investigation",
+              "prompt": "Record the sample session and observed action, what is unknown, and what you would check next. Do not infer approval, test success or a policy breach."
+            },
+            {
+              "id": "recommendation",
+              "label": "Governance improvement",
+              "prompt": "Recommend one improvement linked to your challenge or investigation, with a review owner. Do not configure chargeback, agent permissions or context controls here."
+            },
+            {
+              "id": "valueAssessment",
+              "label": "Adoption versus business value",
+              "prompt": "Explain why this sample cannot prove business value. Name an engineering outcome or developer-feedback measure and baseline you would review alongside usage."
+            },
+            {
+              "id": "realDataLocations",
+              "label": "Corresponding real GitHub data",
+              "prompt": "Name where you would find licensed-seat data, usage trends and agent investigation evidence using the official links below. Include at least one coverage or access limitation; do not paste private URLs or data."
+            }
+          ]
+        },
+        "verification": {
+          "title": "Verify your evidence-backed recommendation",
+          "taskLabel": "Analysis and real-data review",
+          "nextLabel": "Record analysis",
+          "attestation": "I reviewed the fictional sample, investigated one example, distinguished adoption from value, and recorded a recommendation, evidence and next action. This verifies my workshop analysis only, not real configuration or live activity.",
+          "steps": [
+            "Record one adoption challenge, its sample metric reference and supporting explanation.",
+            "Select one sample agent event and record its session, observed action, uncertainty and next check.",
+            "Recommend one governance improvement and identify the evidence supporting it.",
+            "Explain the difference between adoption and business value, including an outcome or feedback measure and baseline to review.",
+            "For real usage trends, review the enterprise Insights tab > Copilot usage and the usage metrics REST reference. The dashboard requires the Copilot usage metrics policy to be enabled; report access and telemetry coverage need checking.",
+            "For real licensed users, review the Copilot user management API reference. Seat assignments are separate from usage metrics reports; the organization endpoints are documented as public preview and require an organization owner.",
+            "For real investigations, review enterprise AI controls > Agent sessions > View all, and Settings > Audit log (also linked from AI controls). Audit logs cover GitHub-side agent activity, not local client prompts. Review event fields such as agent_session_id in the official reference rather than treating this fictional schema as real.",
+            "Record a next action with an owner and review point in Follow-up actions, then attest only when every response is present. No live data collection is required."
+          ],
+          "expectedResult": "Participants can distinguish AI adoption from business value, investigate a fictional agent action without inventing missing evidence, and identify the corresponding real GitHub data sources and a next action.",
+          "evidencePrompt": "Explain how the selected metric and event support your recommendation, and state what they cannot prove. All evidence here is fictional; no live settings or audit checks were performed.",
+          "documentation": [
+            {
+              "label": "Usage metrics: adoption, engagement, code generation and coverage",
+              "url": "https://docs.github.com/en/copilot/concepts/billing-and-usage/copilot-usage-metrics/copilot-metrics"
+            },
+            {
+              "label": "Viewing the Copilot usage dashboard",
+              "url": "https://docs.github.com/en/copilot/how-tos/administer-copilot/view-usage-and-adoption"
+            },
+            {
+              "label": "Copilot usage metrics REST API",
+              "url": "https://docs.github.com/en/rest/copilot/copilot-usage-metrics"
+            },
+            {
+              "label": "Copilot license and seat data REST API",
+              "url": "https://docs.github.com/en/rest/copilot/copilot-user-management"
+            },
+            {
+              "label": "Monitoring enterprise agent sessions",
+              "url": "https://docs.github.com/en/enterprise-cloud@latest/copilot/how-tos/administer-copilot/manage-for-enterprise/manage-agents/monitor-agentic-activity"
+            },
+            {
+              "label": "Reviewing enterprise audit logs and coverage",
+              "url": "https://docs.github.com/en/copilot/how-tos/administer-copilot/manage-for-enterprise/review-audit-logs"
+            },
+            {
+              "label": "Documented agent audit event fields",
+              "url": "https://docs.github.com/en/copilot/reference/enterprise-administrators/agentic-audit-log-events"
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "introductions": {
+    "user-governance": "# User Governance\n\nUser governance starts with Access Management, but is also about which Features,\nClients and Models your users are allowed to choose from.\n\nThe best access model depends on a multitude of factors, such as:\n\n- The size and structure of your organization\n- Whether you need the ability to apply policies to different groups of people,\n  and how fine-grained this must be\n- Whether you want to use automation or your IdP to manage Copilot Access centrally\n- Whether you want to assign Copilot Seats to people without a GitHub Enterprise License\n- Whether you have an existing GitHub account that this model needs to fit into,\n  or if you are just starting fresh\n\n## Decisions ahead\n\n- **UG-01.** Copilot seats can generally be assigned on two layers:\n  enterprise-level and organization-level. Furthermore, you can assign the seats\n  individually, per Enterprise or Organization Team, or simply to every member\n  of an organization.\n- **UG-02.** Whether you need the ability to apply policies to different groups\n  of people, and how fine-grained this must be.\n- **UG-04.** Whether you want to use automation or your IdP to manage Copilot\n  Access centrally.\n- **UG-05.** Do you want your users to be able to self-serve Copilot? Do they\n  need to go through an approval gate or have to fulfill certain preconditions\n  (signing a usage policy, receiving training, etc.) before you want to enable access?\n- **UG-06.** Who will make the decision about general access and policies?\n  The central enterprise ownership team? A dedicated AI governance team?\n  Organization owners?\n- **UG-07.** Do you have governance in your company that only allows vetted\n  models to be made available? Or can you always jump to the most recent\n  frontier models immediately?\n- **UG-08.** Do different tools and Clients (such as IDEs or the GitHub Copilot\n  App) require special approval or vetting before being rolled out? Or do you\n  want to enforce the use of certain tools and clients above others?\n- **UG-09.** Are you generally okay with using Preview features, or do you need\n  to only use stable, fully released features?\n\n## Tradeoffs to consider\n\nIndividual: easy at first, but harder at scale. Mixed: combines individual, team,\nand org-wide assignments to balance ease of management and scalability.\nIt is a bit harder to manage.\n\nSome companies are fine with always staying at the cutting edge and allowing\ndevelopers to use the latest and greatest; other companies prefer, or are even\nrequired, to have tighter control as to what is available where and when.\n\n## Approach for this block\n\nDeciding which Models, Clients and Features to allow your users follows.\n\nGitHub's recommendation here is to `Govern for Adoption` - meaning finding the\nright balance between governance and developer access. Too restrictive, and\ndevelopers can't use the features that make them productive. Too permissive,\nand you may not meet your compliance requirements.\n\n## Sources\n\n- [Remind inactive users](https://docs.github.com/en/enterprise-cloud@latest/copilot/tutorials/roll-out-at-scale/assign-licenses/remind-inactive-users)\n- [Granting enterprise access](https://docs.github.com/en/copilot/how-tos/administer-copilot/manage-for-enterprise/manage-access/grant-access)\n- [Resources for approval](https://docs.github.com/en/enterprise-cloud@latest/copilot/tutorials/roll-out-at-scale/govern-at-scale/resources-for-approval)\n- [Establish AI Manager](https://docs.github.com/en/enterprise-cloud@latest/copilot/tutorials/roll-out-at-scale/govern-at-scale/establish-ai-managers)\n- [Govern for Adoption](https://docs.github.com/en/enterprise-cloud@latest/copilot/tutorials/roll-out-at-scale/govern-at-scale/govern-for-adoption#review-and-enable-features-promptly)\n",
+    "billing-cost-control": "# Billing & Cost Control\n\nSeparate three questions: who funds AI consumption, what should stop excessive\nusage, and how you will explain the costs. A funding decision is not itself a\nconsumption guardrail.\n\n## Decisions ahead\n\n- **BC-01: Funding.** Choose central pilot funding, departmental accountability,\n  or allocation aligned with the licensing organization.\n- **BC-02: Guardrails.** Choose per-user limits, a group metered-spending cap,\n  or both.\n- **BC-03: Reporting.** Choose a dashboard-led review or repeatable reports\n  and exports.\n\n## Tradeoffs to consider\n\nCentral funding can simplify a pilot's ownership; departmental accountability\nneeds agreement on allocation and reconciliation. More detailed reporting needs\nan owner, an agreed review period, and appropriate handling of user-level data.\n\nGitHub's user-level budgets limit individual consumption across included and\nmetered usage. Cost center budgets address group metered charges after the\nshared pool is exhausted; they do not replace user-level limits. See\n[budget controls](https://docs.github.com/en/copilot/concepts/billing-and-usage/organizations-and-enterprises/budgets).\nCost centers track spending for assigned resources; see\n[using cost centers](https://docs.github.com/en/billing/how-tos/products/use-cost-centers).\n\n## Approach for this block\n\nAgree the pilot's funding owner before choosing amounts or changing allocation.\nDistinguish an alert from a stop condition, and inspect the controls that apply\nto the intended users.\n\nThe shared sandbox lab covers BC-01 and BC-02. BC-03 remains a reporting proposal;\nthe synthetic worksheet is practice, not proof of real billing or savings.\nChoose **Needs Review** if Finance approval or the intended scope is unclear.\n",
+    "agent-governance": "# Agent Governance\n\nDecide where agents should operate before deciding which external tools they\nshould use. Treat operating scope and tool access as separate review questions.\n\n## Decisions ahead\n\n- **AG-01: Operating scope.** Choose broader availability, a selected pilot,\n  or keeping the cloud agent disabled until approved.\n- **AG-02: External tools.** Propose approved tools, broader access under an\n  existing reviewed policy, or disabling external integrations.\n\n## Tradeoffs to consider\n\nA bounded pilot makes it easier to agree task boundaries and review outcomes;\nbroader adoption needs clear ownership for exceptions and incidents. Additional\ntools should earn their place through a specific need and a review of their data\nscope, credentials, and actions.\n\nGitHub separates cloud-agent availability from repository availability, and an\norganization cannot override an enterprise-enforced policy. Cloud-agent and\nthird-party MCP policies are also separate controls. See\n[adding the cloud agent to an organization](https://docs.github.com/en/copilot/how-tos/administer-copilot/manage-for-organization/add-copilot-cloud-agent).\n\n## Approach for this block\n\nAgree an approved sandbox scope and a small task with a reviewable result.\nKeeping the agent disabled is a valid decision; verify that boundary without\nenabling it just to complete the exercise.\n\nThe shared lab covers AG-01, not MCP configuration. A prepared read-only fallback\nis not live configuration or verification. Choose **Needs Review** if scope,\napproval, or tool ownership is missing.\n",
+    "context-management": "# Context Management\n\nSeparate guidance for better AI output from controls for sensitive information.\nAgree what good engineering looks like, then consider what information the\nchosen workflow should be allowed to use.\n\n## Decisions ahead\n\n- **CM-01: Engineering standards.** Choose shared repository instructions or\n  a shared baseline with path-specific or team-owned guidance.\n- **CM-02: Sensitive information.** Propose an access review, supported content\n  exclusions, or both where applicable.\n\n## Tradeoffs to consider\n\nA shared baseline is easier to review consistently; specialized guidance needs\nclear ownership to avoid conflicting expectations. Instructions should be\nevaluated, not treated as a guarantee: GitHub notes that Copilot may not follow\nthem identically every time. See\n[customizing Copilot responses](https://docs.github.com/en/copilot/concepts/prompting/response-customization).\n\nBefore proposing exclusions, check the intended client and mode in GitHub's\n[content exclusion documentation](https://docs.github.com/en/copilot/concepts/security-governance-and-network-settings/content-exclusion).\nDo not assume one control covers every workflow.\n\n## Approach for this block\n\nUse a prepared repository with non-sensitive content. Write a short, testable\nstandard and compare generated changes in a fresh session against that standard.\n\nThe shared lab prepares and evaluates repository instructions for CM-01.\nCM-02 remains a protection proposal, not a configured security control.\nChoose **Needs Review** if the standards owner, data owner, or workflow is unclear.\n",
+    "observability": "# Observability\n\nChoose what success means before collecting more activity data. Use evidence\nto identify questions and next actions, not merely to count AI interactions.\n\n## Decisions ahead\n\n- **OB-01: Measuring success.** Choose adoption and engagement, engineering\n  outcomes, or a regular review combining both.\n- **OB-02: Investigating activity.** Choose usage trends, agent sessions and\n  audit evidence, or a combined approach.\n\n## Tradeoffs to consider\n\nUsage trends can point to enablement needs, while engineering outcomes require\na baseline and context. For this workshop, treat adoption as an observation,\nnot proof that AI caused a delivery or quality improvement.\n\nGitHub's usage metrics cover engagement, activity, code generation, and pull\nrequest trends; license assignments are a separate data source. Check the\ndocumented coverage before interpreting missing activity. See\n[Copilot usage metrics](https://docs.github.com/en/copilot/concepts/billing-and-usage/copilot-usage-metrics/copilot-metrics).\nAgent sessions and audit logs support a different investigation workflow; see\n[monitoring agentic activity](https://docs.github.com/en/enterprise-cloud@latest/copilot/how-tos/administer-copilot/manage-for-enterprise/manage-agents/monitor-agentic-activity).\n\n## Approach for this block\n\nReview the fictional dataset, distinguish observations from hypotheses, and\nrecommend one improvement with an owner and a next action.\n\nThe shared lab records sample analysis, not live monitoring or policy changes.\nIts events are workshop examples, not a GitHub audit-event schema.\nChoose **Needs Review** if success criteria or investigation ownership is missing.\n"
+  }
+}
