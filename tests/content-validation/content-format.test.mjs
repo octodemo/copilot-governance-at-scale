@@ -164,6 +164,18 @@ test("Configure Additional steps subsection is exposed as its conclusion", () =>
   assert.ok(codes(misplaced).includes("E_SECTION"));
 });
 
+test("PowerShell profile fences validate the same placeholders as POSIX fences", () => {
+  for (const placeholder of ["{{enterprise.slug}}", "{{organization.slug}}", "{{repository.name}}", "{{input.report-id}}"]) {
+    assert.deepEqual(parse(source.replace("Read this fictional example.", "```powershell profile\n$value=" + placeholder + "\n```")).diagnostics, []);
+  }
+  for (const placeholder of ["{{input.Report-ID}}", "{{unknown}}", "{{enterprise.slug}", "{{enterprise.slug}}}}"]) {
+    const invalid = parse(source.replace("Read this fictional example.", "```powershell profile\n$value=" + placeholder + "\n```"));
+    assert.ok(codes(invalid).some((code) => ["E_TEMPLATE", "E_TEMPLATE_VAR"].includes(code)), JSON.stringify(invalid.diagnostics));
+  }
+  assert.equal(resolveContentCommand("$REPORT_ID={{input.report-id}}", {}, { "report-id": "id'with quote" }, "powershell"),
+    "$REPORT_ID='id''with quote'");
+});
+
 test("Additional steps cards preserve titles, order and safe Markdown without exercise identity", () => {
   const text = source.replace("## Validation", `### Additional steps
 

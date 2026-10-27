@@ -92,6 +92,8 @@ Content is loaded from the checkout; progress is stored per document ID in the u
   Output is escaped and static paths are bounded.
 - Shell blocks run only when the participant clicks **Open terminal and run**.
   Rendering never executes anything, and the server accepts only command templates that exist in the loaded content.
+  Adjacent Bash/PowerShell alternatives share one displayed command and input form, selected from the extension execution host's OS (PowerShell on Windows, Bash elsewhere).
+  Input quoting and server validation use that same selection; authored commands are not automatically translated.
 - The canvas is not an administrative API executor and stores no credentials.
   Commands, proposed changes, and exported notes are guidance, not authorization.
   Consequential writes need explicit confirmation of target, scope, and consequences.

@@ -6,6 +6,7 @@ import { openServer } from "./server.mjs";
 import { openCommandTerminal, validateTerminalCommand } from "./terminal.mjs";
 import { renderMarkdown } from "./ui/markdown.js";
 import { workspaceFor } from "../../../tests/content-validation/exercise-helpers.mjs";
+import { commandShellForPlatform } from "../../../lib/workshop-resolver.mjs";
 
 const shell = "printf 'Workshop terminal test\\n'";
 const content = structuredClone(await loadContent());
@@ -72,6 +73,52 @@ test("native terminal adapter reuses one terminal per workshop document with the
   assert.match(calls[0].instanceId, /^workshop-terminal-[0-9a-f]{16}$/);
   assert.equal(calls[0].canvasId, "terminal");
   assert.deepEqual(calls[0].input, { title: "Workshop command", command: shell, placement: { focus: true } });
+});
+
+const pairedCommand = "```sh profile\nREPORT_ID={{input.report-id}}\nprintf '%s' \"$REPORT_ID\"\n```\n\n```powershell profile\n$REPORT_ID={{input.report-id}}\nWrite-Output $REPORT_ID\n```";
+test("OS selects one authored shell alternative, including nested lists and alerts", () => {
+  assert.equal(commandShellForPlatform("win32"), "powershell");
+  for (const platform of ["darwin", "linux", "freebsd"]) assert.equal(commandShellForPlatform(platform), "sh");
+  for (const markdown of [
+    pairedCommand,
+    "1. Run:\n\n" + pairedCommand.split("\n").map((line) => "   " + line).join("\n"),
+    "> [!TIP]\n" + pairedCommand.split("\n").map((line) => "> " + line).join("\n"),
+    pairedCommand.replaceAll("```", "~~~~").replaceAll("\n", "\r\n"),
+  ]) {
+    for (const shell of ["sh", "powershell"]) {
+      const commands = [];
+      const html = renderMarkdown(markdown, {}, (_value, template) => commands.push(template), shell);
+      assert.equal(commands.length, 1);
+      assert.equal((html.match(/data-open-terminal/g) ?? []).length, 1);
+      assert.equal((html.match(/data-command-input="report-id"/g) ?? []).length, 1);
+      assert.match(commands[0], shell === "powershell" ? /^\$REPORT_ID=/ : /^REPORT_ID=/);
+      assert.doesNotMatch(html, shell === "powershell" ? /printf/ : /Write-Output/);
+    }
+  }
+  const separate = pairedCommand.replace("\n\n```powershell", "\n\nA different example.\n\n```powershell");
+  assert.equal((renderMarkdown(separate).match(/<pre /g) ?? []).length, 2);
+  assert.doesNotMatch(renderMarkdown("```powershell manual\nWrite-Output example\n```"), /data-open-terminal/);
+});
+
+test("Windows route renders, validates and quotes the PowerShell alternative without changing progress", async (t) => {
+  const windowsContent = structuredClone(content);
+  windowsContent.paths[0].stages.understand.markdown = pairedCommand;
+  const store = createStore(await workspaceFor(t), windowsContent);
+  const calls = [];
+  const entry = await openServer({ content: windowsContent, store, documentId: "windows", platform: "win32",
+    openTerminal: async (command) => calls.push(command) });
+  t.after(() => { entry.server.closeAllConnections(); return new Promise((done) => entry.server.close(done)); });
+  assert.match(await (await fetch(entry.url)).text(), /name="canvas-command-shell" content="powershell"/);
+  const before = await store.read("windows");
+  const template = "$REPORT_ID={{input.report-id}}\nWrite-Output $REPORT_ID";
+  const input = { ...inputFor(before, template, { "report-id": "id'; $(throw 'bad'); #" }), contentVersion: windowsContent.version };
+  const call = (body) => fetch(new URL("/api/terminal", entry.url), {
+    method: "POST", headers: { "Content-Type": "application/json", "X-Canvas-Token": entry.token }, body: JSON.stringify(body),
+  });
+  assert.equal((await call(input)).status, 200);
+  assert.deepEqual(calls, ["$REPORT_ID='id''; $(throw ''bad''); #'\nWrite-Output $REPORT_ID"]);
+  assert.equal((await call({ ...input, commandTemplate: templatedShell })).status, 400);
+  assert.deepEqual(await store.read("windows"), before);
 });
 
 test("terminal route authenticates, validates, reports host errors, and leaves progress unchanged", async (t) => {

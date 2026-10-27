@@ -7,6 +7,7 @@ import {
 import { escapeHtml } from "./ui/html.js";
 import { discoverAccounts } from "./discover.mjs";
 import { validateTerminalCommand } from "./terminal.mjs";
+import { commandShellForPlatform } from "../../../lib/workshop-resolver.mjs";
 
 const assets = new Map([
   ["/app.js", new URL("./ui/app.js", import.meta.url)],
@@ -113,7 +114,8 @@ async function messageFor(content, contentRoot, input) {
   return { prompt: parts.join("\n\n"), attachments: [...selections.values()], count: parts.length };
 }
 
-export async function openServer({ content, store, workshop, documentId, log, dev = false, sendToAgent = null, openTerminal = null, contentRoot = repositoryRoot, discover = discoverAccounts }) {
+export async function openServer({ content, store, workshop, documentId, log, dev = false, sendToAgent = null, openTerminal = null, contentRoot = repositoryRoot, discover = discoverAccounts, platform = process.platform }) {
+  const commandShell = commandShellForPlatform(platform);
   const current = () => workshop?.snapshot() ?? { content, store };
   const discoveries = new Map();
   const router = createRouter()
@@ -128,7 +130,7 @@ export async function openServer({ content, store, workshop, documentId, log, de
       res.setHeader("Content-Security-Policy", PAGE_CSP);
       res.setHeader("X-Content-Type-Options", "nosniff");
       res.setHeader("Referrer-Policy", "no-referrer");
-      res.end(html.replace("{{TOKEN}}", escapeHtml(token)).replace("{{DEV}}", dev ? "true" : "false"));
+      res.end(html.replace("{{TOKEN}}", escapeHtml(token)).replace("{{DEV}}", dev ? "true" : "false").replace("{{COMMAND_SHELL}}", commandShell));
     })
     .register("GET", "/lib/workshop-resolver.mjs", async ({ res }) => {
       const source = await readFile(new URL("../../../lib/workshop-resolver.mjs", import.meta.url));
@@ -194,7 +196,7 @@ export async function openServer({ content, store, workshop, documentId, log, de
       const input = await readJsonObject(req);
       const snapshot = current();
       const state = await snapshot.store.read(documentId);
-      const command = validateTerminalCommand(input, snapshot.content, state);
+      const command = validateTerminalCommand(input, snapshot.content, state, commandShell);
       if (current().content.version !== snapshot.content.version) {
         throw new HttpError(409, "Content changed. Reload and review the command again.");
       }

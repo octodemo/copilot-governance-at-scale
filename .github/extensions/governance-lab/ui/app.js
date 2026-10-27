@@ -11,6 +11,7 @@ import {
 watchTheme(document);
 const token = document.querySelector('meta[name="canvas-token"]').content;
 const devMode = document.querySelector('meta[name="canvas-dev"]')?.content === "true";
+const commandShell = document.querySelector('meta[name="canvas-command-shell"]')?.content ?? "sh";
 const devReset = document.querySelector("#dev-reset");
 const main = document.querySelector("#main"), controls = document.querySelector("#navigation");
 const status = document.querySelector("#status"), error = document.querySelector("#error");
@@ -23,7 +24,7 @@ let busy = false, renderedRoute = "", renderedUrl = "";
 let showingAllVariants = false;
 let reviewStage = "configure";
 let keyboardFocus = true;
-const md = (text) => renderMarkdown(text ?? "", state?.profile);
+const md = (text) => renderMarkdown(text ?? "", state?.profile, undefined, commandShell);
 // Dev-only provenance for the section picker: where a rendered part comes from in Markdown.
 const src = (source, label) => devMode && source?.file ?
   ` data-source-file="${html(source.file)}" data-source-line="${source.line}" data-source-end="${source.endLine}" data-source-label="${html(label)}"` : "";
@@ -266,7 +267,7 @@ function checkpoints(items) {
     `<section${src(item.source, `Checkpoint ${item.id}`)}>${md(item.markdown)}${md(item.question)}<details><summary>Reveal explanation</summary>${md(item.answer)}</details></section>`).join("")}</details>` : "";
 }
 function renderDecision(decision, progress, number) {
-  const question = renderQuestion(decision.question, state?.profile);
+  const question = renderQuestion(decision.question, state?.profile, commandShell);
   return `<article class="decision-card workflow-card" data-decision-id="${html(decision.id)}"${src(decision.source, `Decision ${decision.id}`)}>
     <header class="workflow-heading decision-heading">
       <span class="workflow-number" aria-hidden="true">${number}</span>
@@ -641,7 +642,7 @@ function refreshProfile() {
     if (url) link.href = url; else link.removeAttribute("href");
   }
   for (const command of main.querySelectorAll("[data-profile-command]")) {
-    command.textContent = resolveContentCommand(command.dataset.profileCommand, state.profile);
+    command.textContent = resolveContentCommand(command.dataset.profileCommand, state.profile, {}, commandShell);
   }
 }
 async function detectLabProfile() {
