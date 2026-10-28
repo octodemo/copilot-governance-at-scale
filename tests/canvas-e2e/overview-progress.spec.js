@@ -24,7 +24,8 @@ let entry;
 
 test.beforeAll(async () => {
   entry = await openServer({ content, store: { read: async () => structuredClone(savedAnswerState) }, documentId: "overview-progress",
-    discover: async () => ({ profile: null, error: { code: "not-found", message: "No lab enterprise found in this test preview." } }) });
+    discover: async () => ({ profile: null, error: { code: "not-found", message: "No lab enterprise found in this test preview." } }),
+    checkAuth: async () => ({ status: "ready", account: "octocat", missingScopes: [], message: "GitHub CLI is signed in as @octocat." }) });
 });
 
 test.afterAll(async () => {

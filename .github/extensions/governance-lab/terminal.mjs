@@ -53,10 +53,10 @@ export function terminalInstanceId(documentId) {
   return `workshop-terminal-${createHash("sha256").update(String(documentId)).digest("hex").slice(0, 16)}`;
 }
 
-export function openCommandTerminal(session, command, documentId) {
+export function openCommandTerminal(session, command, documentId, title = "Workshop command") {
   return session.rpc.canvas.open({
     canvasId: "terminal",
     instanceId: terminalInstanceId(documentId),
-    input: { title: "Workshop command", command, placement: { focus: true } },
+    input: { title, command, placement: { focus: true } },
   });
 }

@@ -18,7 +18,11 @@ const status = document.querySelector("#status"), error = document.querySelector
 const drafts = new Map(), pendingSaves = new Map();
 const profileHost = document.querySelector("#profile-host");
 const profileKey = JSON.stringify({ view: "home" });
-let profileDetection = "idle", profileDetectionError = "", profileEpoch = 0;
+let profileDetection = "idle", profileDetectionError = "", profileDetectionCode = "", profileNotice = "", profileEpoch = 0;
+// GitHub CLI sign-in gate for automatic detection. Status checks are read-only.
+const SIGN_IN_POLL_MS = 4000, SIGN_IN_TIMEOUT_MS = 15 * 60 * 1000;
+let authState = null, signInPending = false, signInDeadline = 0, signInTimer = null, signInError = "", signInReplaces = null;
+const signInRendered = new WeakMap();
 let content, state, saving, saveTimer, inFlight = null;
 let busy = false, renderedRoute = "", renderedUrl = "";
 let showingAllVariants = false;
@@ -618,7 +622,8 @@ function renderSummary(rows) {
 function profileSummary() {
   const { enterpriseSlug = "", organizationSlug = "", repositoryName = DEFAULT_REPOSITORY_NAME } = state.profile ?? {};
   const label = (title, slug, url, symbol, missing = null) => {
-    const value = slug || missing || (profileDetection === "loading" || profileDetection === "idle" ? "Loading..." : "Not configured");
+    const value = slug || missing || (profileDetection === "loading" || profileDetection === "idle" ? "Loading..." :
+      profileDetection === "signin" ? "Sign-in required" : "Not configured");
     const text = `${icon(symbol)}<span><span class="profile-caption">${title}: </span><span class="profile-value">${html(value)}</span></span>`;
     return slug ? `<a class="profile-label" href="${url}${html(slug)}" target="_blank" rel="noopener noreferrer">${text}</a>` :
       `<span class="profile-label">${text}</span>`;
@@ -635,8 +640,15 @@ function refreshProfile() {
   if (summary.innerHTML !== markup) summary.innerHTML = markup;
   profileHost.querySelector("#profile-open").hidden = profileDetection === "loading" || profileDetection === "idle";
   const message = profileHost.querySelector("#profile-detection-error");
-  message.textContent = profileDetectionError;
-  message.hidden = !profileDetectionError;
+  message.textContent = profileDetectionError || profileNotice;
+  message.hidden = !message.textContent;
+  // Compare with the last rendered string so unchanged buttons keep focus.
+  const next = signInMarkup();
+  for (const [selector, markup] of [["#profile-signin", next.text], ["#profile-signin-actions", next.actions]]) {
+    const host = profileHost.querySelector(selector);
+    if (host && signInRendered.get(host) !== markup) { host.innerHTML = markup; signInRendered.set(host, markup); }
+    if (host) host.hidden = !markup;
+  }
   for (const link of main.querySelectorAll("[data-profile-link]")) {
     const url = resolveContentLinkTarget(link.dataset.profileLink, state.profile);
     if (url) link.href = url; else link.removeAttribute("href");
@@ -650,25 +662,105 @@ async function detectLabProfile() {
   if (state.profile?.enterpriseSlug && state.profile?.organizationSlug) {
     profileDetection = "configured"; refreshProfile(); return;
   }
-  profileDetection = "loading"; refreshProfile();
+  profileDetection = "loading"; profileDetectionCode = ""; profileNotice = ""; refreshProfile();
   const epoch = profileEpoch;
+  try { authState = await (await request("/api/auth/status")).json(); }
+  catch (reason) { authState = { status: "failed", account: null, missingScopes: [], message: reason.message }; }
+  if (epoch !== profileEpoch) { profileDetection = "idle"; void detectLabProfile(); return; }
+  if (authState.status !== "ready") {
+    profileDetection = "signin"; refreshProfile();
+    if (signInPending && !signInTimer) signInTimer = setTimeout(pollSignIn, SIGN_IN_POLL_MS);
+    return;
+  }
+  stopSignInPolling();
   try {
-    const { profile, error: failure } = await (await request("/api/profile/discover", { automatic: true })).json();
+    const { profile, error: failure, notices = [] } = await (await request("/api/profile/discover", { automatic: true })).json();
     if (epoch !== profileEpoch) { profileDetection = "idle"; void detectLabProfile(); return; }
-    if (failure) throw new Error(failure.message);
+    if (failure) throw Object.assign(new Error(failure.message), { code: failure.code });
     if (!profile) throw new Error("No lab enterprise was detected.");
     if (drafts.has(profileKey) || ["enterpriseSlug", "organizationSlug"].some((key) => state.profile?.[key] && state.profile[key] !== profile[key])) {
       throw new Error("Your existing profile was kept. Complete the profile manually.");
     }
-    const detectedProfile = { ...state.profile, ...profile };
+    const { repositoryName, ...slugs } = profile;
+    const keepRepository = state.profile?.repositoryName && state.profile.repositoryName !== DEFAULT_REPOSITORY_NAME;
+    const detectedProfile = { ...state.profile, ...slugs, ...(repositoryName && !keepRepository ? { repositoryName } : {}) };
     rememberDraft(profileKey, detectedProfile); pendingSaves.set(profileKey, detectedProfile);
     if (!await flushSaves()) throw new Error("The detected lab profile could not be saved. Configure it manually.");
-    profileDetection = "configured";
+    profileDetection = "configured"; profileNotice = notices.join(" ");
   } catch (reason) {
     if (epoch !== profileEpoch) { profileDetection = "idle"; void detectLabProfile(); return; }
-    profileDetection = "failed"; profileDetectionError = reason.message;
+    profileDetection = "failed"; profileDetectionError = reason.message; profileDetectionCode = reason.code ?? "";
   }
   refreshProfile();
+}
+function stopSignInPolling() {
+  clearTimeout(signInTimer); signInTimer = null; signInPending = false; signInError = "";
+}
+async function pollSignIn() {
+  signInTimer = null;
+  if (!signInPending || profileDetection !== "signin") return;
+  const epoch = profileEpoch;
+  let next = authState;
+  try { next = await (await request("/api/auth/status")).json(); } catch { /* keep the last known status and retry */ }
+  if (epoch !== profileEpoch || profileDetection !== "signin" || !signInPending) return;
+  authState = next;
+  // When switching accounts, the previous ready account is not the new sign-in.
+  if (next.status === "ready" && next.account !== signInReplaces) { stopSignInPolling(); profileDetection = "idle"; void detectLabProfile(); return; }
+  if (Date.now() > signInDeadline) signInPending = false;
+  else signInTimer = setTimeout(pollSignIn, SIGN_IN_POLL_MS);
+  refreshProfile();
+}
+async function startSignIn(mode) {
+  clearTimeout(signInTimer); signInTimer = null; signInError = "";
+  try {
+    await request("/api/auth/sign-in", { mode });
+    signInReplaces = mode === "login" && authState?.status === "ready" ? authState.account : null;
+    signInPending = true; signInDeadline = Date.now() + SIGN_IN_TIMEOUT_MS;
+    if (profileDetection === "failed") { profileDetection = "signin"; profileDetectionError = ""; profileDetectionCode = ""; }
+    signInTimer = setTimeout(pollSignIn, SIGN_IN_POLL_MS);
+  } catch (reason) { signInPending = false; signInError = reason.message; }
+  refreshProfile();
+}
+function checkSignInAgain() {
+  if (profileDetection === "loading") return;
+  clearTimeout(signInTimer); signInTimer = null;
+  if (signInPending) signInDeadline = Date.now() + SIGN_IN_TIMEOUT_MS;
+  profileDetection = "idle"; profileDetectionError = ""; profileDetectionCode = "";
+  void detectLabProfile();
+}
+function signInMarkup() {
+  const wrongAccount = profileDetection === "failed" && ["not-found", "unauthenticated", "forbidden"].includes(profileDetectionCode);
+  if (profileDetection !== "signin" && !wrongAccount) return { text: "", actions: "" };
+  const button = (mode, label, primary = false) => `<button class="btn${primary ? " btn-primary" : ""}" type="button" data-sign-in="${mode}">${label}</button>`;
+  const check = `<button id="profile-signin-check" class="btn" type="button">Check again</button>`;
+  const status = authState?.status;
+  const login = button("login", "Log into CLI", true);
+  const purpose = "Sign-in opens a terminal and your browser, and requests the <code>admin:enterprise</code> and <code>admin:org</code> scopes.";
+  let intro, actions;
+  if (wrongAccount) {
+    intro = "";
+    actions = login;
+  } else if (status === "missing-scopes") {
+    intro = `${html(authState.message)} Grant them to detect your lab enterprise, organization, and repository, or log in with your lab account instead.`;
+    actions = `${button("refresh", "Grant admin scopes", true)}${button("login", "Use a different account")}${check}`;
+  } else if (status === "ready" && signInPending) {
+    intro = "Complete the sign-in for your lab account in the terminal and browser.";
+    actions = check;
+  } else if (status === "gh-missing") {
+    intro = html(authState.message);
+    actions = check;
+  } else if (status === "signed-out") {
+    intro = `Log into GitHub CLI with your lab account so the workshop can detect your enterprise, organization, and repository. ${purpose}`;
+    actions = `${login}${check}`;
+  } else {
+    intro = `${html(authState?.message ?? "GitHub CLI sign-in status is unknown.")} Log into GitHub CLI with your lab account to detect your enterprise, organization, and repository. ${purpose}`;
+    actions = `${login}${check}`;
+  }
+  const progress = signInError ? html(signInError) :
+    signInPending ? "Waiting for sign-in. Finish it in the terminal and browser; the one-time code is copied to your clipboard. Detection starts automatically." :
+    signInDeadline && Date.now() > signInDeadline && profileDetection === "signin" ? "Sign-in was not detected yet. Check again, or start sign-in again." : "";
+  const text = `${intro ? `<p class="profile-signin-intro">${intro}</p>` : ""}${progress ? `<p class="profile-signin-status">${progress}</p>` : ""}`;
+  return { text, actions };
 }
 function renderProfile() {
   const profile = state.profile ?? { enterpriseSlug: "", organizationSlug: "" };
@@ -680,8 +772,12 @@ function renderProfile() {
   return `<section class="enterprise-profile" aria-labelledby="enterprise-profile-title">
     <div class="enterprise-profile-copy"><h2 id="enterprise-profile-title" class="sr-only">Your lab accounts</h2>
       <div id="profile-summary" class="profile-summary" role="status" aria-live="polite">${profileSummary()}</div>
-      <p id="profile-detection-error" class="profile-detection-error" hidden></p></div>
-    <button id="profile-open" class="btn" type="button" aria-haspopup="dialog" aria-controls="profile-panel" aria-expanded="false" hidden>Configure enterprise profile</button>
+      <p id="profile-detection-error" class="profile-detection-error" hidden></p>
+      <div id="profile-signin" class="profile-signin profile-home-only" role="region" aria-label="GitHub CLI sign-in" aria-live="polite" hidden></div>
+      <div class="profile-actions profile-home-only">
+        <span id="profile-signin-actions" class="profile-signin-actions" hidden></span>
+        <button id="profile-open" class="btn" type="button" aria-haspopup="dialog" aria-controls="profile-panel" aria-expanded="false" hidden>Configure enterprise profile</button>
+      </div></div>
   </section>
   <dialog id="profile-panel" class="profile-panel" aria-labelledby="profile-panel-title">
     <div class="profile-panel-header"><h2 id="profile-panel-title">Enterprise profile</h2>
@@ -765,6 +861,7 @@ function render() {
   reviewButton.setAttribute("aria-pressed", String(showingAllVariants));
   renderedRoute = JSON.stringify(route); renderedUrl = location.href; updateStatus();
   renderWorkshopNavigation(route);
+  profileHost.classList.toggle("profile-on-home", route.view === "home");
   controls.hidden = true; controls.innerHTML = "";
   if (route.view === "home") main.innerHTML = `<h2>Choose your governance journey</h2><p class="muted">Explore decisions, selected guidance, and exercises. Configuration and validation remain separate.</p>
     <div class="journeys">${content.paths.map((path, index) => {
@@ -970,6 +1067,8 @@ document.addEventListener("click", (event) => {
   else if (button.id === "profile-open") openProfilePanel();
   else if (button.matches("[data-profile-close]")) void closeProfilePanel();
   else if (button.id === "profile-discover") void discoverProfile();
+  else if (button.matches("[data-sign-in]")) void startSignIn(button.dataset.signIn);
+  else if (button.id === "profile-signin-check") checkSignInAgain();
   else if (button.matches("[data-checklist]")) {
     const route = routeNow(), stepId = button.dataset.checklist;
     const key = JSON.stringify({ view: "checklist", pathId: route.pathId, stepId });

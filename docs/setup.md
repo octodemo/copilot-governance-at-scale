@@ -92,8 +92,10 @@ Run the preparation checks below before rehearsing changed workshop material.
 
 3. Confirm the title is **Copilot Governance Workshop** and all six blocks are
    present.
-4. Compare **Your Enterprise** and **Your Organization** with the approved
-   rehearsal targets. When automatic detection fails, use **Configure
+4. If the header shows **Sign-in required**, select **Log into CLI**
+   and finish the browser sign-in in the opened terminal; detection then runs
+   automatically. Compare **Your Enterprise**, **Your Organization**, and
+   **Your Repository** with the approved rehearsal targets. When automatic detection fails, use **Configure
    enterprise profile** with the approved slugs. If the detected target is
    wrong, stop before following settings links and resolve it.
 5. Work through a reviewed block, check that edits save, and inspect

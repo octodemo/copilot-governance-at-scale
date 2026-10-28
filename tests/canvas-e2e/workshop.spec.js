@@ -327,7 +327,7 @@ test("lab profile loads automatically, survives navigation and reload, and links
   await expect(answer).toBeChecked();
   await expect(answer).toBeFocused();
   await expect(question).toHaveAttribute("data-decision-id", questionId);
-  await expect(page.locator("#profile-open")).toBeVisible();
+  await expect(page.locator("#profile-open")).toBeHidden();
   const links = page.locator("#profile-summary a");
   await expect(links).toHaveCount(3);
   for (const [index, name] of ["globe", "organization", "repo"].entries()) {
@@ -359,19 +359,99 @@ test("lab profile loads automatically, survives navigation and reload, and links
   }
   await page.reload();
   await expect(links.nth(0)).toHaveText("Your Enterprise: ghuniverse1874-ea76");
+  await expect(page.locator("#profile-open")).toBeHidden();
+  await page.goto(entry.url);
   await expect(page.locator("#profile-open")).toBeVisible();
+  const open = await page.locator("#profile-open").boundingBox(), summary = await page.locator("#profile-summary").boundingBox();
+  expect(open.y).toBeGreaterThanOrEqual(summary.y + summary.height);
   expect(calls).toBe(1);
+});
+
+test("first open offers GitHub CLI sign-in and detects enterprise, organization, and repository after sign-in", async ({ page }) => {
+  let status = { status: "signed-out", account: null, missingScopes: ["admin:enterprise", "admin:org"], message: "GitHub CLI is not signed in to github.com." };
+  const signIns = [];
+  let discoveries = 0;
+  await page.route("**/api/auth/status", (route) => route.fulfill({ json: status }));
+  await page.route("**/api/auth/sign-in", (route) => { signIns.push(route.request().postDataJSON()); return route.fulfill({ json: { opened: true } }); });
+  await page.route("**/api/profile/discover", (route) => {
+    discoveries++;
+    return route.fulfill({ json: { profile: { enterpriseSlug: "ghuniverse1874-ea76", organizationSlug: "ghuniverse1874-ea76", repositoryName: "pets-workshop" }, notices: [] } });
+  });
+  await page.clock.install();
+  await page.goto(entry.url);
+  const signIn = page.getByRole("button", { name: "Log into CLI", exact: true });
+  await expect(signIn).toBeVisible();
+  await expect(page.locator("#profile-signin")).toContainText("admin:enterprise");
+  await expect(page.locator("#profile-summary")).toContainText("Your Enterprise: Sign-in required");
+  await expect(page.locator("#profile-open")).toBeVisible();
+  expect(discoveries).toBe(0);
+  await signIn.click();
+  expect(signIns).toEqual([{ mode: "login" }]);
+  await expect(page.locator("#profile-signin")).toContainText("Waiting for sign-in");
+  await page.clock.runFor(4500);
+  expect(discoveries).toBe(0);
+  status = { status: "ready", account: "lab-admin", missingScopes: [], message: "GitHub CLI is signed in as @lab-admin." };
+  await page.clock.runFor(4500);
+  await expect.poll(async () => (await disk()).profile).toEqual({
+    enterpriseSlug: "ghuniverse1874-ea76", organizationSlug: "ghuniverse1874-ea76", repositoryName: "pets-workshop",
+  });
+  await expect(page.locator("#profile-signin")).toBeHidden();
+  await expect(page.locator("#profile-summary a").nth(0)).toHaveText("Your Enterprise: ghuniverse1874-ea76");
+  expect(discoveries).toBe(1);
+});
+
+test("failed sign-in checks and missing lab enterprises still offer the green Log into CLI button", async ({ page }) => {
+  await page.route("**/api/auth/status", (route) => route.fulfill({ status: 500, json: { message: "Status unavailable." } }));
+  await page.goto(entry.url);
+  const login = page.getByRole("button", { name: "Log into CLI", exact: true });
+  await expect(login).toBeVisible();
+  await expect(login).toHaveClass(/btn-primary/);
+  await page.unroute("**/api/auth/status");
+  await page.route("**/api/auth/status", (route) => route.fulfill({ json: { status: "ready", account: "octocat", missingScopes: [], message: "GitHub CLI is signed in as @octocat." } }));
+  await page.route("**/api/profile/discover", (route) => route.fulfill({ json: { profile: null, error: { code: "not-found", message: "No enterprise matching ghuniverse1874- was found for this GitHub CLI account." } } }));
+  await page.getByRole("button", { name: "Check again", exact: true }).click();
+  await expect(page.locator("#profile-detection-error")).toContainText("No enterprise matching");
+  await expect(login).toBeVisible();
+  await expect(login).toHaveClass(/btn-primary/);
+  await expect(page.locator(".enterprise-profile")).not.toContainText("If this is not your lab account");
+  const configure = page.getByRole("button", { name: "Configure enterprise profile", exact: true });
+  const [loginBox, configureBox, summaryBox] = await Promise.all([login.boundingBox(), configure.boundingBox(), page.locator("#profile-summary").boundingBox()]);
+  expect(loginBox.y).toBe(configureBox.y);
+  expect(loginBox.x).toBeLessThan(configureBox.x);
+  expect(loginBox.y).toBeGreaterThanOrEqual(summaryBox.y + summaryBox.height);
+  await page.goto(`${entry.url}?path=${ALPHA.id}`);
+  await expect(page.locator("#profile-detection-error")).toContainText("No enterprise matching");
+  await expect(login).toBeHidden();
+  await expect(configure).toBeHidden();
+});
+
+test("signed-in accounts without admin scopes are offered a scope refresh", async ({ page }) => {
+  const signIns = [];
+  await page.route("**/api/auth/status", (route) => route.fulfill({ json: {
+    status: "missing-scopes", account: "octocat", missingScopes: ["admin:enterprise"], message: "GitHub CLI is signed in as @octocat without the admin:enterprise scope.",
+  } }));
+  await page.route("**/api/auth/sign-in", (route) => { signIns.push(route.request().postDataJSON()); return route.fulfill({ status: 502, json: { message: "Could not confirm that the terminal opened: host unavailable." } }); });
+  await page.goto(entry.url);
+  await expect(page.locator("#profile-signin")).toContainText("@octocat without the admin:enterprise scope");
+  await expect(page.getByRole("button", { name: "Use a different account", exact: true })).toBeVisible();
+  await page.getByRole("button", { name: "Grant admin scopes", exact: true }).click();
+  expect(signIns).toEqual([{ mode: "refresh" }]);
+  await expect(page.locator("#profile-signin")).toContainText("host unavailable");
 });
 
 for (const failure of [
   { code: "not-found", message: "No enterprise matching ghuniverse1874- was found." },
   { code: "ambiguous", message: "Multiple enterprises match ghuniverse1874-." },
   { code: "forbidden", message: "GitHub CLI's token cannot list enterprises." },
-]) test(`automatic profile ${failure.code} exposes manual configuration on the current stage`, async ({ page }) => {
+]) test(`automatic profile ${failure.code} exposes manual configuration on the overview only`, async ({ page }) => {
   await page.route("**/api/profile/discover", (route) => route.fulfill({ json: { profile: null, error: failure } }));
   await page.goto(`${entry.url}?path=${ALPHA.id}`);
   await expect(page.locator("#profile-detection-error")).toHaveText(failure.message);
   await expect(page.locator("#profile-summary")).toContainText("Not configured");
+  await expect(page.getByRole("button", { name: "Configure enterprise profile", exact: true })).toBeHidden();
+  await expect(page.locator("#profile-signin-actions")).toBeHidden();
+  await page.getByRole("link", { name: "Back to blocks", exact: true }).click();
+  await expect(page).not.toHaveURL(/path=/);
   await page.getByRole("button", { name: "Configure enterprise profile", exact: true }).click();
   await page.getByLabel("Enterprise slug", { exact: true }).fill("manual-enterprise");
   await expect.poll(async () => (await disk()).profile.enterpriseSlug).toBe("manual-enterprise");
@@ -383,7 +463,6 @@ for (const failure of [
   await expect(page.locator("#profile-detection-error")).toBeEmpty();
   await page.keyboard.press("Escape");
   await expect(page.locator("#profile-panel")).toBeHidden();
-  await expect(page).toHaveURL(new RegExp(`path=${ALPHA.id}`));
   await expect.poll(async () => (await disk()).profile).toEqual({ enterpriseSlug: "manual-enterprise", organizationSlug: "manual-org", repositoryName: "pets-workshop" });
   await expect(page.locator("#profile-summary a").nth(1)).toHaveAttribute("href", "https://github.com/manual-org");
   await expect(page.locator("#profile-detection-error")).toBeHidden();
