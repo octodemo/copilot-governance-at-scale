@@ -17,6 +17,9 @@ const variantPath = workshopFixture.paths.find((path) =>
 let entry, store, cleanup, workspace;
 test.beforeEach(async ({ page }) => {
   cleanup = [];
+  await page.route("**/api/auth/status", (route) => route.fulfill({
+    json: { status: "ready", account: "octocat", missingScopes: [], message: "GitHub CLI is signed in as @octocat." },
+  }));
   await page.route("**/api/profile/discover", (route) => route.fulfill({
     json: { profile: null, error: { code: "not-found", message: "No lab enterprise found in this test preview." } },
   }));
