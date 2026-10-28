@@ -642,9 +642,12 @@ function refreshProfile() {
   message.textContent = profileDetectionError || profileNotice;
   message.hidden = !message.textContent;
   // Compare with the last rendered string so unchanged buttons keep focus.
-  const signIn = profileHost.querySelector("#profile-signin"), signInNext = signInMarkup();
-  if (signIn && signInRendered.get(signIn) !== signInNext) { signIn.innerHTML = signInNext; signInRendered.set(signIn, signInNext); }
-  if (signIn) signIn.hidden = !signInNext;
+  const next = signInMarkup();
+  for (const [selector, markup] of [["#profile-signin", next.text], ["#profile-signin-actions", next.actions]]) {
+    const host = profileHost.querySelector(selector);
+    if (host && signInRendered.get(host) !== markup) { host.innerHTML = markup; signInRendered.set(host, markup); }
+    if (host) host.hidden = !markup;
+  }
   for (const link of main.querySelectorAll("[data-profile-link]")) {
     const url = resolveContentLinkTarget(link.dataset.profileLink, state.profile);
     if (url) link.href = url; else link.removeAttribute("href");
@@ -726,7 +729,7 @@ function checkSignInAgain() {
 }
 function signInMarkup() {
   const wrongAccount = profileDetection === "failed" && ["not-found", "unauthenticated", "forbidden"].includes(profileDetectionCode);
-  if (profileDetection !== "signin" && !wrongAccount) return "";
+  if (profileDetection !== "signin" && !wrongAccount) return { text: "", actions: "" };
   const button = (mode, label, primary = false) => `<button class="btn${primary ? " btn-primary" : ""}" type="button" data-sign-in="${mode}">${label}</button>`;
   const check = `<button id="profile-signin-check" class="btn" type="button">Check again</button>`;
   const status = authState?.status;
@@ -734,7 +737,7 @@ function signInMarkup() {
   const purpose = "Sign-in opens a terminal and your browser, and requests the <code>admin:enterprise</code> and <code>admin:org</code> scopes.";
   let intro, actions;
   if (wrongAccount) {
-    intro = `If this is not your lab account, log into GitHub CLI with the account that administers your lab enterprise. ${purpose}`;
+    intro = "";
     actions = login;
   } else if (status === "missing-scopes") {
     intro = `${html(authState.message)} Grant them to detect your lab enterprise, organization, and repository, or log in with your lab account instead.`;
@@ -755,8 +758,8 @@ function signInMarkup() {
   const progress = signInError ? html(signInError) :
     signInPending ? "Waiting for sign-in. Finish it in the terminal and browser; the one-time code is copied to your clipboard. Detection starts automatically." :
     signInDeadline && Date.now() > signInDeadline && profileDetection === "signin" ? "Sign-in was not detected yet. Check again, or start sign-in again." : "";
-  return `<p class="profile-signin-intro">${intro}</p><div class="profile-signin-actions">${actions}</div>
-    <p class="profile-signin-status">${progress}</p>`;
+  const text = `${intro ? `<p class="profile-signin-intro">${intro}</p>` : ""}${progress ? `<p class="profile-signin-status">${progress}</p>` : ""}`;
+  return { text, actions };
 }
 function renderProfile() {
   const profile = state.profile ?? { enterpriseSlug: "", organizationSlug: "" };
@@ -769,8 +772,11 @@ function renderProfile() {
     <div class="enterprise-profile-copy"><h2 id="enterprise-profile-title" class="sr-only">Your lab accounts</h2>
       <div id="profile-summary" class="profile-summary" role="status" aria-live="polite">${profileSummary()}</div>
       <p id="profile-detection-error" class="profile-detection-error" hidden></p>
-      <div id="profile-signin" class="profile-signin" role="region" aria-label="GitHub CLI sign-in" aria-live="polite" hidden></div></div>
-    <button id="profile-open" class="btn" type="button" aria-haspopup="dialog" aria-controls="profile-panel" aria-expanded="false" hidden>Configure enterprise profile</button>
+      <div id="profile-signin" class="profile-signin profile-home-only" role="region" aria-label="GitHub CLI sign-in" aria-live="polite" hidden></div>
+      <div class="profile-actions profile-home-only">
+        <span id="profile-signin-actions" class="profile-signin-actions" hidden></span>
+        <button id="profile-open" class="btn" type="button" aria-haspopup="dialog" aria-controls="profile-panel" aria-expanded="false" hidden>Configure enterprise profile</button>
+      </div></div>
   </section>
   <dialog id="profile-panel" class="profile-panel" aria-labelledby="profile-panel-title">
     <div class="profile-panel-header"><h2 id="profile-panel-title">Enterprise profile</h2>
@@ -854,6 +860,7 @@ function render() {
   reviewButton.setAttribute("aria-pressed", String(showingAllVariants));
   renderedRoute = JSON.stringify(route); renderedUrl = location.href; updateStatus();
   renderWorkshopNavigation(route);
+  profileHost.classList.toggle("profile-on-home", route.view === "home");
   controls.hidden = true; controls.innerHTML = "";
   if (route.view === "home") main.innerHTML = `<h2>Choose your governance journey</h2><p class="muted">Explore decisions, selected guidance, and exercises. Configuration and validation remain separate.</p>
     <div class="journeys">${content.paths.map((path, index) => {

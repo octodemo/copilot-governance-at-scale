@@ -52,26 +52,31 @@ test("repository profile defaults, edits links in place, persists across panels,
   await linkedStore.updateProfile("repository-profile", {
     revision: 0, profile: { enterpriseSlug: "lab-enterprise", organizationSlug: "lab-org" },
   });
-  await page.goto(`${linked.url}?path=example-block&stage=understand`);
+  const block = `${linked.url}?path=example-block&stage=understand`;
   const link = page.locator("#main").getByRole("link", { name: "Repository Settings", exact: true });
+  await page.goto(block);
   await expect(link).toHaveAttribute("href", "https://example.test/lab-org/pets-workshop/settings");
+  await expect(page.locator("#profile-open")).toBeHidden();
+  await page.goto(linked.url);
   await page.locator("#profile-open").click();
   const input = page.getByLabel("Repository name", { exact: true });
   await expect(input).toHaveValue("pets-workshop");
   await input.fill("custom.repo_name");
-  await expect(link).toHaveAttribute("href", "https://example.test/lab-org/custom.repo_name/settings");
   await expect(input).toBeFocused();
+  await expect.poll(async () => (await linkedStore.read("repository-profile")).profile.repositoryName).toBe("custom.repo_name");
   await page.keyboard.press("Escape");
   const second = await context.newPage();
-  await second.goto(`${linked.url}?path=example-block&stage=understand`);
+  await second.goto(block);
   await expect(second.locator("#main").getByRole("link", { name: "Repository Settings", exact: true }))
     .toHaveAttribute("href", "https://example.test/lab-org/custom.repo_name/settings");
   await second.close();
   await page.locator("#profile-open").click();
   await input.fill("");
-  await expect(link).toHaveAttribute("href", "https://example.test/organizations");
   await expect(input).toBeFocused();
   await expect.poll(async () => (await linkedStore.read("repository-profile")).profile.repositoryName).toBe("");
+  await page.keyboard.press("Escape");
+  await page.goto(block);
+  await expect(link).toHaveAttribute("href", "https://example.test/organizations");
 });
 
 test("automatic account detection preserves a custom repository in an otherwise blank profile", async ({ page }) => {

@@ -327,7 +327,7 @@ test("lab profile loads automatically, survives navigation and reload, and links
   await expect(answer).toBeChecked();
   await expect(answer).toBeFocused();
   await expect(question).toHaveAttribute("data-decision-id", questionId);
-  await expect(page.locator("#profile-open")).toBeVisible();
+  await expect(page.locator("#profile-open")).toBeHidden();
   const links = page.locator("#profile-summary a");
   await expect(links).toHaveCount(3);
   for (const [index, name] of ["globe", "organization", "repo"].entries()) {
@@ -359,7 +359,11 @@ test("lab profile loads automatically, survives navigation and reload, and links
   }
   await page.reload();
   await expect(links.nth(0)).toHaveText("Your Enterprise: ghuniverse1874-ea76");
+  await expect(page.locator("#profile-open")).toBeHidden();
+  await page.goto(entry.url);
   await expect(page.locator("#profile-open")).toBeVisible();
+  const open = await page.locator("#profile-open").boundingBox(), summary = await page.locator("#profile-summary").boundingBox();
+  expect(open.y).toBeGreaterThanOrEqual(summary.y + summary.height);
   expect(calls).toBe(1);
 });
 
@@ -409,6 +413,16 @@ test("failed sign-in checks and missing lab enterprises still offer the green Lo
   await expect(page.locator("#profile-detection-error")).toContainText("No enterprise matching");
   await expect(login).toBeVisible();
   await expect(login).toHaveClass(/btn-primary/);
+  await expect(page.locator(".enterprise-profile")).not.toContainText("If this is not your lab account");
+  const configure = page.getByRole("button", { name: "Configure enterprise profile", exact: true });
+  const [loginBox, configureBox, summaryBox] = await Promise.all([login.boundingBox(), configure.boundingBox(), page.locator("#profile-summary").boundingBox()]);
+  expect(loginBox.y).toBe(configureBox.y);
+  expect(loginBox.x).toBeLessThan(configureBox.x);
+  expect(loginBox.y).toBeGreaterThanOrEqual(summaryBox.y + summaryBox.height);
+  await page.goto(`${entry.url}?path=${ALPHA.id}`);
+  await expect(page.locator("#profile-detection-error")).toContainText("No enterprise matching");
+  await expect(login).toBeHidden();
+  await expect(configure).toBeHidden();
 });
 
 test("signed-in accounts without admin scopes are offered a scope refresh", async ({ page }) => {
@@ -429,11 +443,15 @@ for (const failure of [
   { code: "not-found", message: "No enterprise matching ghuniverse1874- was found." },
   { code: "ambiguous", message: "Multiple enterprises match ghuniverse1874-." },
   { code: "forbidden", message: "GitHub CLI's token cannot list enterprises." },
-]) test(`automatic profile ${failure.code} exposes manual configuration on the current stage`, async ({ page }) => {
+]) test(`automatic profile ${failure.code} exposes manual configuration on the overview only`, async ({ page }) => {
   await page.route("**/api/profile/discover", (route) => route.fulfill({ json: { profile: null, error: failure } }));
   await page.goto(`${entry.url}?path=${ALPHA.id}`);
   await expect(page.locator("#profile-detection-error")).toHaveText(failure.message);
   await expect(page.locator("#profile-summary")).toContainText("Not configured");
+  await expect(page.getByRole("button", { name: "Configure enterprise profile", exact: true })).toBeHidden();
+  await expect(page.locator("#profile-signin-actions")).toBeHidden();
+  await page.getByRole("link", { name: "Back to blocks", exact: true }).click();
+  await expect(page).not.toHaveURL(/path=/);
   await page.getByRole("button", { name: "Configure enterprise profile", exact: true }).click();
   await page.getByLabel("Enterprise slug", { exact: true }).fill("manual-enterprise");
   await expect.poll(async () => (await disk()).profile.enterpriseSlug).toBe("manual-enterprise");
@@ -445,7 +463,6 @@ for (const failure of [
   await expect(page.locator("#profile-detection-error")).toBeEmpty();
   await page.keyboard.press("Escape");
   await expect(page.locator("#profile-panel")).toBeHidden();
-  await expect(page).toHaveURL(new RegExp(`path=${ALPHA.id}`));
   await expect.poll(async () => (await disk()).profile).toEqual({ enterpriseSlug: "manual-enterprise", organizationSlug: "manual-org", repositoryName: "pets-workshop" });
   await expect(page.locator("#profile-summary a").nth(1)).toHaveAttribute("href", "https://github.com/manual-org");
   await expect(page.locator("#profile-detection-error")).toBeHidden();
