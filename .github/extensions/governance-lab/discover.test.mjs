@@ -7,41 +7,41 @@ const fail = (fields) => Object.assign(new Error("gh failed"), fields);
 
 const labEnterprises = (slugs) => JSON.stringify([{ data: { viewer: { enterprises: { nodes: slugs.map((slug) => ({ slug })) } } } }]);
 
-test("automatic detection derives enterprise, organization, and repository from the lab account", async () => {
+test("automatic detection uses the enterprise slug as the organization without listing organizations", async () => {
   const calls = [];
   const result = await discoverAccounts({ automatic: true, run: async (args) => {
     calls.push(args[1]);
     if (args[1] === "user") return '{"login":"octocat"}';
-    if (args[1] === "user/orgs") return JSON.stringify([[{ login: "other" }, { login: "GHUniverse1874-EA76" }]]);
-    if (args[1] === "orgs/GHUniverse1874-EA76/repos?per_page=100") return JSON.stringify([[{ name: "notes" }, { name: "pets-workshop" }], [{ name: "../bad" }]]);
+    if (args[1] === "user/orgs") throw new Error("organizations must not be listed");
+    if (args[1] === "orgs/ghuniverse1874-ea76/repos?per_page=100") return JSON.stringify([[{ name: "notes" }, { name: "pets-workshop" }], [{ name: "../bad" }]]);
     return JSON.stringify([{ data: { viewer: { enterprises: { nodes: [
       { slug: "unrelated" }, { slug: "ghuniverse1847-octocat" }, { slug: "ghuniverse1874-ea76" },
       { slug: "ghuniverse1874-ea76" }, { slug: "ghuniverse1874-bad/value" },
     ] } } } }]);
   } });
-  assert.deepEqual(calls, ["user", "graphql", "user/orgs", "orgs/GHUniverse1874-EA76/repos?per_page=100"]);
-  assert.deepEqual(result, { profile: { enterpriseSlug: "ghuniverse1874-ea76", organizationSlug: "GHUniverse1874-EA76", repositoryName: "pets-workshop" }, notices: [] });
+  assert.deepEqual(calls, ["user", "graphql", "orgs/ghuniverse1874-ea76/repos?per_page=100"]);
+  assert.deepEqual(result, { profile: { enterpriseSlug: "ghuniverse1874-ea76", organizationSlug: "ghuniverse1874-ea76", repositoryName: "pets-workshop" }, notices: [] });
 });
 
-test("automatic detection picks a single lab organization or repository and reports what it could not detect", async () => {
-  const run = (orgs, repos) => async (args) => {
+test("automatic detection picks a single repository and reports what it could not detect", async () => {
+  const run = (repos) => async (args) => {
     if (args[1] === "user") return '{"login":"octocat"}';
     if (args[1] === "graphql") return labEnterprises(["ghuniverse1874-ea76"]);
-    if (args[1] === "user/orgs") { if (orgs instanceof Error) throw orgs; return JSON.stringify([orgs.map((login) => ({ login }))]); }
+    if (args[1] === "user/orgs") throw new Error("organizations must not be listed");
     if (repos instanceof Error) throw repos;
     return JSON.stringify([repos.map((name) => ({ name }))]);
   };
-  const single = await discoverAccounts({ automatic: true, run: run(["ghuniverse1874-org"], ["only-repo"]) });
-  assert.deepEqual(single, { profile: { enterpriseSlug: "ghuniverse1874-ea76", organizationSlug: "ghuniverse1874-org", repositoryName: "only-repo" }, notices: [] });
+  const single = await discoverAccounts({ automatic: true, run: run(["only-repo"]) });
+  assert.deepEqual(single, { profile: { enterpriseSlug: "ghuniverse1874-ea76", organizationSlug: "ghuniverse1874-ea76", repositoryName: "only-repo" }, notices: [] });
 
-  const several = await discoverAccounts({ automatic: true, run: run(["other"], ["a", "b"]) });
+  const several = await discoverAccounts({ automatic: true, run: run(["a", "b"]) });
   assert.deepEqual(several.profile, { enterpriseSlug: "ghuniverse1874-ea76", organizationSlug: "ghuniverse1874-ea76" });
-  assert.equal(several.notices.length, 2);
-  assert.match(several.notices[1], /several repositories/);
+  assert.equal(several.notices.length, 1);
+  assert.match(several.notices[0], /several repositories/);
 
-  const failing = await discoverAccounts({ automatic: true, run: run(fail({ stderr: "HTTP 403" }), fail({ stderr: "HTTP 404" })) });
+  const failing = await discoverAccounts({ automatic: true, run: run(fail({ stderr: "HTTP 404" })) });
   assert.deepEqual(failing.profile, { enterpriseSlug: "ghuniverse1874-ea76", organizationSlug: "ghuniverse1874-ea76" });
-  assert.match(failing.notices.join(" "), /could not be listed.*could not be listed/);
+  assert.match(failing.notices.join(" "), /could not be listed/);
 });
 
 test("automatic detection fails explicitly for missing, ambiguous, inaccessible, or malformed enterprises", async () => {
@@ -71,12 +71,11 @@ test("automatic discovery retains the environment-token fallback for every looku
   const result = await discoverAccounts({ automatic: true, env: { GH_TOKEN: "x" }, run: async (args, { useEnvToken }) => {
     calls.push([args[1], useEnvToken]);
     if (!useEnvToken) throw fail({ stderr: "not logged in" });
-    if (args[1] === "user/orgs") return "[[]]";
     if (args[1].startsWith("orgs/")) return '[[{"name":"pets-workshop"}]]';
     return args[1] === "user" ? '{"login":"octocat"}' :
       '{"data":{"viewer":{"enterprises":{"nodes":[{"slug":"ghuniverse1874-ea76"}]}}}}';
   } });
-  assert.deepEqual(calls, [["user", false], ["graphql", false], ["user", true], ["graphql", true], ["user/orgs", true], ["orgs/ghuniverse1874-ea76/repos?per_page=100", true]]);
+  assert.deepEqual(calls, [["user", false], ["graphql", false], ["user", true], ["graphql", true], ["orgs/ghuniverse1874-ea76/repos?per_page=100", true]]);
   assert.equal(result.profile.organizationSlug, "ghuniverse1874-ea76");
 });
 

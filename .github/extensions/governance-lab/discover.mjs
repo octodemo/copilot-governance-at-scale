@@ -129,7 +129,8 @@ export async function discoverAccounts({ run = runGh, env = process.env, automat
     const enterpriseSlug = matches[0].slug;
     const options = { useEnvToken: result.source === "environment" };
     const notices = [];
-    const organizationSlug = await detectOrganization(run, options, enterpriseSlug, notices);
+    // Lab organizations share their enterprise's slug, so automatic detection does not list organizations.
+    const organizationSlug = enterpriseSlug;
     const repositoryName = await detectRepository(run, options, organizationSlug, notices);
     return { profile: { enterpriseSlug, organizationSlug, ...(repositoryName ? { repositoryName } : {}) }, notices };
   }
@@ -138,23 +139,6 @@ export async function discoverAccounts({ run = runGh, env = process.env, automat
 }
 
 const isLabSlug = (slug) => slug.toLowerCase().startsWith(LAB_PREFIX) && slug.length > LAB_PREFIX.length;
-
-// Lab organizations share their enterprise's slug. Prefer that exact match, then a
-// single lab-prefixed organization; otherwise keep the shared-slug convention.
-async function detectOrganization(run, options, enterpriseSlug, notices) {
-  let organizations;
-  try { organizations = candidates(pages(await run([...GH_COMMANDS.organizations], options)).flat(), "login"); }
-  catch {
-    notices.push(`Organization membership could not be listed; using ${enterpriseSlug}, the lab organization naming convention.`);
-    return enterpriseSlug;
-  }
-  const exact = organizations.find(({ slug }) => slug.toLowerCase() === enterpriseSlug.toLowerCase());
-  if (exact) return exact.slug;
-  const lab = organizations.filter(({ slug }) => isLabSlug(slug));
-  if (lab.length === 1) return lab[0].slug;
-  notices.push(`No single lab organization was found for this account; using ${enterpriseSlug}. Check the organization in the profile.`);
-  return enterpriseSlug;
-}
 
 // Returns a repository only when the organization contains the workshop default
 // or exactly one repository; otherwise the profile keeps its current value.
