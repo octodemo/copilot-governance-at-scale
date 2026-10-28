@@ -743,6 +743,13 @@ Use a test repository and pull request in your sandbox organization. Reviews can
      -f end_date="$END_DATE"
    ```
 
+   ```powershell profile
+   $START_DATE='2026-10-01'
+   $END_DATE='2026-10-31'
+
+   gh api --method POST -H 'X-GitHub-Api-Version: 2026-03-10' "/enterprises/{{enterprise.slug}}/settings/billing/reports" -f report_type=ai_credit -f start_date="$START_DATE" -f end_date="$END_DATE"
+   ```
+
 4. In the same terminal, enter the returned `id` in the **Report ID** field to retrieve that export's status. If it is `processing`, wait and repeat this GET rather than creating another report. If it is `failed`, stop and inspect the response; do not treat it as an empty report.
 
    ```sh profile
@@ -753,6 +760,12 @@ Use a test repository and pull request in your sandbox organization. Reviews can
      "/enterprises/{{enterprise.slug}}/settings/billing/reports/$REPORT_ID"
    ```
 
+   ```powershell profile
+   $REPORT_ID={{input.report-id}}
+
+   gh api --method GET -H 'X-GitHub-Api-Version: 2026-03-10' "/enterprises/{{enterprise.slug}}/settings/billing/reports/$REPORT_ID"
+   ```
+
 5. Once `status` is `completed`, enter a URL from `download_urls` in the **Download URL** field and choose an absolute path in the **Output file** field. Use a private folder outside the repository and choose a new filename for each download. Do not forward GitHub credentials to the download URL or share the URL.
 
    ```sh profile
@@ -761,6 +774,13 @@ Use a test repository and pull request in your sandbox organization. Reviews can
 
    curl --fail --location --proto '=https' --proto-redir '=https' \
      --output "$OUTPUT_FILE" "$DOWNLOAD_URL"
+   ```
+
+   ```powershell profile
+   $DOWNLOAD_URL={{input.download-url}}
+   $OUTPUT_FILE={{input.output-file}}
+
+   curl.exe --fail --location --proto '=https' --proto-redir '=https' --output "$OUTPUT_FILE" "$DOWNLOAD_URL"
    ```
 
 6. Open the CSV locally. Find your user's rows and compare `gross_amount`, `discount_amount`, and `net_amount` for the requested period. If you selected **By individual user** in **Cross-charging: Allocation level**, use these per-user rows; this path does not require a cost center. If you selected a group allocation and created a cost center, use the [detailed usage report](https://docs.github.com/en/enterprise-cloud@latest/billing/reference/billing-reports) to filter by its `cost_center_name`; that field is not included in the AI usage report.
@@ -776,6 +796,10 @@ Use a test repository and pull request in your sandbox organization. Reviews can
      -f per_page=100 -f page=1
    ```
 
+   ```powershell profile
+   gh api --method GET -H 'X-GitHub-Api-Version: 2026-03-10' "/enterprises/{{enterprise.slug}}/settings/billing/budgets" -f per_page=100 -f page=1
+   ```
+
 2. Enter one of your budget IDs in the **Budget ID** field to retrieve it directly. Compare its scope, configured amount, consumed amount, and enforcement setting with the budget you saved in the UI. Repeat for another budget you created to see how the scopes differ.
 
    ```sh profile
@@ -784,6 +808,12 @@ Use a test repository and pull request in your sandbox organization. Reviews can
    gh api --method GET \
      -H 'X-GitHub-Api-Version: 2026-03-10' \
      "/enterprises/{{enterprise.slug}}/settings/billing/budgets/$BUDGET_ID"
+   ```
+
+   ```powershell profile
+   $BUDGET_ID={{input.budget-id}}
+
+   gh api --method GET -H 'X-GitHub-Api-Version: 2026-03-10' "/enterprises/{{enterprise.slug}}/settings/billing/budgets/$BUDGET_ID"
    ```
 
 3. Enter your user's login in the **User login** field to query your budget position. Inspect the returned `effective_budget`, including its amount and consumed amount.
@@ -795,6 +825,12 @@ Use a test repository and pull request in your sandbox organization. Reviews can
      -H 'X-GitHub-Api-Version: 2026-03-10' \
      "/enterprises/{{enterprise.slug}}/settings/billing/budgets" \
      -f user="$USER_LOGIN"
+   ```
+
+   ```powershell profile
+   $USER_LOGIN={{input.user-login}}
+
+   gh api --method GET -H 'X-GitHub-Api-Version: 2026-03-10' "/enterprises/{{enterprise.slug}}/settings/billing/budgets" -f user="$USER_LOGIN"
    ```
 
 ### Additional steps

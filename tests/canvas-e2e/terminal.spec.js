@@ -7,12 +7,14 @@ import { workspaceFor } from "../content-validation/exercise-helpers.mjs";
 let entry, store, cleanup, calls, fail, releaseLaunch;
 const command = "printf 'Terminal MVP\\n'";
 const commandTemplate = 'REPORT_ID={{input.report-id}}\nprintf "%s\\n" "$REPORT_ID"';
-test.beforeEach(async ({ page }) => {
+const windowsTemplate = '$REPORT_ID={{input.report-id}}\nWrite-Output $REPORT_ID';
+test.beforeEach(async ({ page }, testInfo) => {
   cleanup = []; calls = []; fail = false; releaseLaunch = null;
   const content = structuredClone(await loadContent());
-  content.paths[0].stages.understand.markdown = "```sh\n" + command + "\n```\n\n```sh profile\n" + commandTemplate + "\n```\n\n```json\n{}\n```";
+  content.paths[0].stages.understand.markdown = "```sh\n" + command + "\n```\n\n```sh profile\n" + commandTemplate + "\n```\n\n```powershell profile\n" + windowsTemplate + "\n```\n\n```json\n{}\n```";
   store = createStore(await workspaceFor({ after: (fn) => cleanup.push(fn) }), content);
   entry = await openServer({ content, store, documentId: "terminal-browser",
+    platform: testInfo.title.startsWith("Windows") ? "win32" : "linux",
     discover: async () => ({ profile: null, error: { code: "not-found", message: "No lab account in this fixture." } }),
     openTerminal: async (value) => { if (fail) throw new Error("host unavailable"); calls.push(value); },
   });
@@ -68,6 +70,34 @@ test("rapid clicks cannot launch the same command twice while opening", async ({
   releaseLaunch();
   await expect.poll(() => calls).toEqual([command]);
   await expect(launcher).toBeEnabled();
+});
+
+test("Windows selects and launches only the PowerShell alternative with literal participant input", async ({ page }) => {
+  const before = await store.read("terminal-browser");
+  await expect(page.getByLabel("Report ID")).toHaveCount(1);
+  const code = page.locator("code.language-powershell");
+  await expect(code).toHaveText(windowsTemplate);
+  await expect(page.locator("code").filter({ hasText: 'printf "%s' })).toHaveCount(0);
+  const value = "report'; $(throw 'bad'); #";
+  await page.getByLabel("Report ID").fill(value);
+  await page.getByRole("button", { name: "Open terminal and run", exact: true }).nth(1).click();
+  await expect.poll(() => calls).toEqual(["$REPORT_ID='report''; $(throw ''bad''); #'\nWrite-Output $REPORT_ID"]);
+  expect(await store.read("terminal-browser")).toEqual(before);
+});
+
+test("Windows rejects a forged Bash alternative instead of translating arbitrary text", async ({ page }) => {
+  await expect(page.getByLabel("Report ID")).toBeVisible();
+  const status = await page.evaluate(async (commandTemplate) => {
+    const token = document.querySelector('meta[name="canvas-token"]').content;
+    const { content, state } = await (await fetch("/api/bootstrap", { headers: { "X-Canvas-Token": token } })).json();
+    return (await fetch("/api/terminal", {
+      method: "POST",
+      headers: { "X-Canvas-Token": token, "Content-Type": "application/json" },
+      body: JSON.stringify({ commandTemplate, inputs: { "report-id": "123" }, contentVersion: content.version, revision: state.revision }),
+    })).status;
+  }, commandTemplate);
+  expect(status).toBe(400);
+  expect(calls).toEqual([]);
 });
 
 for (const width of [320, 390]) {
