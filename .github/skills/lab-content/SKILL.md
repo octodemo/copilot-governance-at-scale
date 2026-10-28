@@ -248,6 +248,8 @@ Pick the fence info string by what the command needs:
 | `sh` (also `bash`, `shell`) | The command runs exactly as written. | Yes |
 | `sh profile` | The command needs a configured enterprise, organization, or repository, or participant input. Use `{{enterprise.slug}}`, `{{organization.slug}}`, `{{repository.name}}`, and/or `{{input.field-id}}`. | Yes |
 | `sh manual` | Reference-only shell examples that participants must not run from the workshop. | No |
+| `powershell` / `powershell profile` | Windows equivalents of `sh` / `sh profile`, immediately following the matching Bash fence with only blank lines between them. | Yes, for the selected alternative |
+| `powershell manual` | Reference-only PowerShell examples. | No |
 
 ````text
 2. Request the report. This command uses the enterprise saved in your workshop profile.
@@ -268,6 +270,7 @@ Pick the fence info string by what the command needs:
 - Use `{{input.field-id}}` for values the participant must supply. Each unique field ID creates a required text field; IDs ending in `-url` receive URL validation. Assign the placeholder directly to a shell variable without quotes, then use the variable in the command. Inputs are shell-quoted on the server and are not persisted.
 - Do not leave values such as `YOUR-BUDGET-ID` in runnable commands. Use a form input for values returned by an earlier command.
 - All commands in a workshop document run in the same terminal, so later steps can use variables and files from earlier steps. Say "In the same terminal" when a step depends on that. If a participant closes the terminal, the next click starts a new shell, so keep each step's needed variables recoverable.
+- Pair shell-specific Bash commands with authored PowerShell equivalents. The extension execution host's OS selects PowerShell on Windows and Bash on macOS/Linux; this assumes the host's default terminal shell, not a custom Command Prompt or Git Bash configuration. Both variants must use the same participant input IDs and perform the same operation. Use `$NAME={{input.field-id}}` assignments, single-line invocations, `curl.exe`, native JSON cmdlets, and explicit native-command exit checks in PowerShell. Do not try to translate arbitrary Bash by replacing continuation characters.
 - Use exactly these info strings. Any other info string, such as `console` or `sh example`, renders as plain code without a button.
 - Commands must be grounded like any other claim. A button is not authorization for consequential writes outside the participant's test environment.
 
@@ -290,7 +293,7 @@ Pick the fence info string by what the command needs:
   prepared examples.
 
 Use only the Markdown and metadata defined in the format. Expressions, scripts,
-templated endpoints, and dynamic URLs are not general authoring mechanisms. The exceptions are the profile link placeholders described in Navigation steps and `sh profile` fences, which support `{{enterprise.slug}}`, `{{organization.slug}}`, `{{repository.name}}`, and declared `{{input.field-id}}` values. Profile placeholders display the globally configured workshop identifiers; missing or invalid values prevent execution. Rendering never executes commands; the participant canvas offers an explicit **Open terminal and run** button on runnable shell fences. Use `sh manual` only for reference-only examples that are not to be run from the workshop. See the content format for the exact contract.
+templated endpoints, and dynamic URLs are not general authoring mechanisms. The exceptions are the profile link placeholders described in Navigation steps and `sh profile` / `powershell profile` fences, which support `{{enterprise.slug}}`, `{{organization.slug}}`, `{{repository.name}}`, and declared `{{input.field-id}}` values. Profile placeholders display the globally configured workshop identifiers; missing or invalid values prevent execution. Rendering never executes commands; the participant canvas offers an explicit **Open terminal and run** button on runnable shell fences. Use `sh manual` or `powershell manual` only for reference-only examples that are not to be run from the workshop. See the content format for the exact contract.
 
 ## Safety and approval
 

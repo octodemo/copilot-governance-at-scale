@@ -54,8 +54,8 @@ export function matchListItem(line) {
   return null;
 }
 
-export function renderListItem(lines, profile, onCommand) {
-  const html = renderBlocks(lines, profile, onCommand);
+export function renderListItem(lines, profile, onCommand, commandShell) {
+  const html = renderBlocks(lines, profile, onCommand, commandShell);
   const single = html.match(/^<p>([\s\S]*)<\/p>$/);
   if (single && single[1].indexOf('<p>') === -1) return '<li>' + single[1] + '</li>';
   return '<li>' + html + '</li>';
@@ -109,12 +109,12 @@ export function renderTableCell(tag, value, alignment, profile) {
   return '<' + tag + className + '>' + inlineMarkdown(value, profile) + '</' + tag + '>';
 }
 
-function fencedCode(source, info, profile, onCommand) {
+function fencedCode(source, info, profile, onCommand, commandShell) {
   const language = info.trim().split(/\s+/)[0].toLowerCase();
-  const profileCommand = info.trim() === 'sh profile';
+  const profileCommand = /^(sh|powershell) profile$/.test(info.trim());
   const commandTemplate = profileCommand ? source : null;
-  if (profileCommand) source = resolveContentCommand(source, profile);
-  const shell = /^(sh|bash|shell)$/.test(info.trim()) || profileCommand;
+  if (profileCommand) source = resolveContentCommand(source, profile, {}, commandShell);
+  const shell = /^(sh|bash|shell|powershell)$/.test(info.trim()) || profileCommand;
   const inputs = profileCommand ? commandInputNames(commandTemplate) : [];
   if (shell && source.trim()) onCommand?.(source, commandTemplate ?? source);
   let code = escapeHtml(source);
@@ -158,9 +158,25 @@ function fencedCode(source, info, profile, onCommand) {
     '<button type="button" class="btn btn-sm terminal-launch" data-open-terminal title="Run the command above in a new terminal using the shell and credentials of this session">' + icon('terminal') + '<span>Open terminal and run</span></button></div>' : block;
 }
 
+function readFence(lines, start) {
+  const fence = lines[start].match(/^ {0,3}(`{3,}|~{3,})(.*)$/);
+  if (!fence) return null;
+  const code = [];
+  let next = start + 1;
+  while (next < lines.length) {
+    const closing = lines[next].match(/^ {0,3}(`{3,}|~{3,})\s*$/);
+    if (closing && closing[1][0] === fence[1][0] && closing[1].length >= fence[1].length) {
+      next += 1;
+      break;
+    }
+    code.push(lines[next++]);
+  }
+  return { source: code.join('\n'), info: fence[2].trim(), next };
+}
+
 // Block-level parser. Keeps wrapped lines inside their list item and keeps a
 // list contiguous across blank lines, so ordered numbering never restarts.
-export function renderBlocks(lines, profile, onCommand) {
+export function renderBlocks(lines, profile, onCommand, commandShell = 'sh') {
   const output = [];
   let i = 0;
 
@@ -168,16 +184,19 @@ export function renderBlocks(lines, profile, onCommand) {
     const line = lines[i];
     if (!line.trim()) { i += 1; continue; }
 
-    const fence = line.match(/^ {0,3}(`{3,}|~{3,})(.*)$/);
+    let fence = readFence(lines, i);
     if (fence) {
-      const code = [];
-      i += 1;
-      while (i < lines.length) {
-        const closing = lines[i].match(/^ {0,3}(`{3,}|~{3,})\s*$/);
-        if (closing && closing[1][0] === fence[1][0] && closing[1].length >= fence[1].length) { i += 1; break; }
-        code.push(lines[i++]);
+      i = fence.next;
+      if (/^(sh( profile)?|bash|shell)$/.test(fence.info)) {
+        let next = i;
+        while (next < lines.length && !lines[next].trim()) next += 1;
+        const alternative = next < lines.length ? readFence(lines, next) : null;
+        if (alternative?.info === (fence.info.endsWith(' profile') ? 'powershell profile' : 'powershell')) {
+          i = alternative.next;
+          if (commandShell === 'powershell') fence = alternative;
+        }
       }
-      output.push(fencedCode(code.join('\n'), fence[2], profile, onCommand));
+      output.push(fencedCode(fence.source, fence.info, profile, onCommand, commandShell));
       continue;
     }
     if (/^\*\*\*\s*$/.test(line)) { output.push('<hr>'); i += 1; continue; }
@@ -203,9 +222,9 @@ export function renderBlocks(lines, profile, onCommand) {
         const title = type[0].toUpperCase() + type.slice(1);
         output.push('<div class="markdown-alert markdown-alert-' + type + '" role="note">' +
           '<p class="markdown-alert-title">' + title + '</p>' +
-          renderBlocks(quoted.slice(1), profile, onCommand) + '</div>');
+          renderBlocks(quoted.slice(1), profile, onCommand, commandShell) + '</div>');
       } else {
-        output.push('<blockquote>' + renderBlocks(quoted, profile, onCommand) + '</blockquote>');
+        output.push('<blockquote>' + renderBlocks(quoted, profile, onCommand, commandShell) + '</blockquote>');
       }
       continue;
     }
@@ -276,7 +295,7 @@ export function renderBlocks(lines, profile, onCommand) {
       }
 
       const startAttr = type === 'ol' && start !== 1 ? ' start="' + start + '"' : '';
-      output.push('<' + type + startAttr + '>' + items.map((item) => renderListItem(item, profile, onCommand)).join('') + '</' + type + '>');
+      output.push('<' + type + startAttr + '>' + items.map((item) => renderListItem(item, profile, onCommand, commandShell)).join('') + '</' + type + '>');
       continue;
     }
 
@@ -292,13 +311,13 @@ export function renderBlocks(lines, profile, onCommand) {
   return output.join('');
 }
 
-export function renderMarkdown(markdown, profile, onCommand) {
+export function renderMarkdown(markdown, profile, onCommand, commandShell = 'sh') {
   if (!markdown) return '';
-  return renderBlocks(markdown.replace(/\t/g, '    ').split(/\r?\n/), profile, onCommand);
+  return renderBlocks(markdown.replace(/\t/g, '    ').split(/\r?\n/), profile, onCommand, commandShell);
 }
 
-export function renderQuestion(markdown, profile) {
-  const rendered = renderMarkdown(markdown, profile);
+export function renderQuestion(markdown, profile, commandShell = 'sh') {
+  const rendered = renderMarkdown(markdown, profile, undefined, commandShell);
   const paragraph = rendered.match(/^<p>([\s\S]*)<\/p>$/);
   return paragraph ?
     { singleParagraph: true, html: paragraph[1] } :

@@ -3,7 +3,7 @@ import { HttpError } from "./http.mjs";
 import { renderMarkdown } from "./ui/markdown.js";
 import { commandInputNames, resolveContentCommand } from "../../../lib/workshop-resolver.mjs";
 
-export function validateTerminalCommand(input, content, state) {
+export function validateTerminalCommand(input, content, state, commandShell = "sh") {
   if (Object.keys(input).sort().join(",") !== "commandTemplate,contentVersion,inputs,revision" ||
       typeof input.commandTemplate !== "string" ||
       !input.commandTemplate.trim() || input.commandTemplate.length > 16_000 ||
@@ -24,7 +24,7 @@ export function validateTerminalCommand(input, content, state) {
   const commands = new Set();
   const visit = (value) => {
     if (typeof value === "string") {
-      renderMarkdown(value, state.profile, (_command, template) => commands.add(template));
+      renderMarkdown(value, state.profile, (_command, template) => commands.add(template), commandShell);
     } else if (Array.isArray(value)) {
       value.forEach(visit);
     } else if (value && typeof value === "object") {
@@ -37,7 +37,7 @@ export function validateTerminalCommand(input, content, state) {
   if (!commands.has(input.commandTemplate)) {
     throw new HttpError(400, "This command is not a shell block in the loaded workshop. Reload and try again.");
   }
-  const command = resolveContentCommand(input.commandTemplate, state.profile, input.inputs);
+  const command = resolveContentCommand(input.commandTemplate, state.profile, input.inputs, commandShell);
   if (command.length > 16_000) {
     throw new HttpError(400, "The resolved workshop command exceeds 16000 characters.");
   }

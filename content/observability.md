@@ -528,6 +528,10 @@ If the control or a dashboard is unavailable, identify the restriction. An acces
      "/enterprises/{{enterprise.slug}}/copilot/metrics/reports/enterprise-28-day/latest"
    ```
 
+   ```powershell profile
+   gh api --method GET -H 'Accept: application/vnd.github+json' -H 'X-GitHub-Api-Version: 2026-03-10' "/enterprises/{{enterprise.slug}}/copilot/metrics/reports/enterprise-28-day/latest"
+   ```
+
 3. Ensure no data or a 404 Error is returned.
 
 See the [enterprise report endpoint](https://docs.github.com/en/enterprise-cloud@latest/rest/copilot/copilot-usage-metrics?apiVersion=2026-03-10#get-copilot-enterprise-usage-metrics).
@@ -555,10 +559,25 @@ If the request fails, distinguish authorization and data-availability limitation
    jq '{report_start_day, report_end_day, file_count: (.download_links | length)}' usage-report-links.json
    ```
 
+   ```powershell profile
+   & {
+     $response = gh api --method GET -H 'Accept: application/vnd.github+json' -H 'X-GitHub-Api-Version: 2026-03-10' "/orgs/{{organization.slug}}/copilot/metrics/reports/organization-28-day/latest"
+     if ($LASTEXITCODE -ne 0) { throw 'Report request failed.' }
+     $response | Set-Content -Encoding utf8 usage-report-links.json -ErrorAction Stop
+     $report = $response | ConvertFrom-Json -ErrorAction Stop
+     if ($report.download_links -isnot [array]) { throw 'Report response has no download_links array.' }
+     [pscustomobject]@{ report_start_day = $report.report_start_day; report_end_day = $report.report_end_day; file_count = $report.download_links.Count } | ConvertTo-Json
+   }
+   ```
+
 2. If the request succeeded and returned download links, print them. Paste each link into your browser to download that report file. These signed links expire, so request new ones if a download fails.
 
    ```sh
    jq -r '.download_links[]' usage-report-links.json
+   ```
+
+   ```powershell
+   (Get-Content -Raw usage-report-links.json -ErrorAction Stop | ConvertFrom-Json -ErrorAction Stop).download_links
    ```
 
    Alternatively, download every file from the terminal with this script. Do not add your GitHub token to the download request.
@@ -577,7 +596,31 @@ If the request fails, distinguish authorization and data-availability limitation
    )
    ```
 
-3. Open each downloaded NDJSON file locally. Each line is a JSON record. Inspect a record with `head -n 1 copilot-usage-1.ndjson | jq .`. Identify a usage measure and the period it describes. Compare the available feature or IDE breakdowns without treating missing values as zero activity.
+   ```powershell
+   & {
+     $report = Get-Content -Raw usage-report-links.json -ErrorAction Stop | ConvertFrom-Json -ErrorAction Stop
+     if ($report.download_links -isnot [array] -or $report.download_links.Count -eq 0) { throw 'No report download links returned' }
+     $report.download_links | Set-Content -Encoding utf8 usage-download-links.txt -ErrorAction Stop
+     $index = 0
+     foreach ($url in $report.download_links) {
+       $index++
+       curl.exe --fail --location --proto '=https' --proto-redir '=https' "$url" --output "copilot-usage-$index.ndjson"
+       if ($LASTEXITCODE -ne 0) { throw "Download $index failed." }
+     }
+   }
+   ```
+
+3. Open each downloaded NDJSON file locally. Each line is a JSON record. Inspect a record:
+
+   ```sh
+   head -n 1 copilot-usage-1.ndjson | jq .
+   ```
+
+   ```powershell
+   Get-Content -TotalCount 1 copilot-usage-1.ndjson -ErrorAction Stop | ConvertFrom-Json -ErrorAction Stop | ConvertTo-Json -Depth 100
+   ```
+
+   Identify a usage measure and the period it describes. Compare the available feature or IDE breakdowns without treating missing values as zero activity.
 4. Explain one adoption question the report could help answer and one business-impact claim it cannot establish. Organization membership can attribute the same user's usage to more than one organization; do not add organization totals to calculate an enterprise total.
 
 For team-level breakdowns, join user-team membership reports with per-user usage reports. See the [organization report endpoint](https://docs.github.com/en/enterprise-cloud@latest/rest/copilot/copilot-usage-metrics#get-copilot-organization-usage-metrics) and [metrics coverage and organization attribution](https://docs.github.com/en/enterprise-cloud@latest/copilot/concepts/billing-and-usage/copilot-usage-metrics/copilot-metrics).
@@ -605,10 +648,25 @@ If the API returns an error, record its status and message. Check authorization 
    jq '{report_start_day, report_end_day, file_count: (.download_links | length)}' usage-report-links.json
    ```
 
+   ```powershell profile
+   & {
+     $response = gh api --method GET -H 'Accept: application/vnd.github+json' -H 'X-GitHub-Api-Version: 2026-03-10' "/enterprises/{{enterprise.slug}}/copilot/metrics/reports/enterprise-28-day/latest"
+     if ($LASTEXITCODE -ne 0) { throw 'Report request failed.' }
+     $response | Set-Content -Encoding utf8 usage-report-links.json -ErrorAction Stop
+     $report = $response | ConvertFrom-Json -ErrorAction Stop
+     if ($report.download_links -isnot [array]) { throw 'Report response has no download_links array.' }
+     [pscustomobject]@{ report_start_day = $report.report_start_day; report_end_day = $report.report_end_day; file_count = $report.download_links.Count } | ConvertTo-Json
+   }
+   ```
+
 2. If the request succeeded and returned download links, print them. Paste each link into your browser to download that report file. These signed links expire, so request new ones if a download fails.
 
    ```sh
    jq -r '.download_links[]' usage-report-links.json
+   ```
+
+   ```powershell
+   (Get-Content -Raw usage-report-links.json -ErrorAction Stop | ConvertFrom-Json -ErrorAction Stop).download_links
    ```
 
    Alternatively, download every file from the terminal with this script. Do not add your GitHub token to the download request.
@@ -627,7 +685,31 @@ If the API returns an error, record its status and message. Check authorization 
    )
    ```
 
-3. Open each downloaded NDJSON file locally. Each line is a JSON record. Inspect a record with `head -n 1 copilot-usage-1.ndjson | jq .`. Identify a usage measure and the period it describes. Compare the available feature or IDE breakdowns without treating missing values as zero activity.
+   ```powershell
+   & {
+     $report = Get-Content -Raw usage-report-links.json -ErrorAction Stop | ConvertFrom-Json -ErrorAction Stop
+     if ($report.download_links -isnot [array] -or $report.download_links.Count -eq 0) { throw 'No report download links returned' }
+     $report.download_links | Set-Content -Encoding utf8 usage-download-links.txt -ErrorAction Stop
+     $index = 0
+     foreach ($url in $report.download_links) {
+       $index++
+       curl.exe --fail --location --proto '=https' --proto-redir '=https' "$url" --output "copilot-usage-$index.ndjson"
+       if ($LASTEXITCODE -ne 0) { throw "Download $index failed." }
+     }
+   }
+   ```
+
+3. Open each downloaded NDJSON file locally. Each line is a JSON record. Inspect a record:
+
+   ```sh
+   head -n 1 copilot-usage-1.ndjson | jq .
+   ```
+
+   ```powershell
+   Get-Content -TotalCount 1 copilot-usage-1.ndjson -ErrorAction Stop | ConvertFrom-Json -ErrorAction Stop | ConvertTo-Json -Depth 100
+   ```
+
+   Identify a usage measure and the period it describes. Compare the available feature or IDE breakdowns without treating missing values as zero activity.
 4. Explain one adoption question the report could help answer and one business-impact claim it cannot establish.
 
 See the [enterprise report endpoint](https://docs.github.com/en/enterprise-cloud@latest/rest/copilot/copilot-usage-metrics?apiVersion=2026-03-10#get-copilot-enterprise-usage-metrics).
@@ -682,6 +764,10 @@ If access or events are unavailable, review the documented `actor:Copilot` filte
      -f include='all' -f per_page=100
    ```
 
+   ```powershell profile
+   gh api --method GET -H 'Accept: application/vnd.github+json' -H 'X-GitHub-Api-Version: 2026-03-10' "/enterprises/{{enterprise.slug}}/audit-log" -f include='all' -f per_page=100
+   ```
+
 3. In the same terminal, run this command to query only Copilot entries:
 
    ```sh profile
@@ -690,6 +776,10 @@ If access or events are unavailable, review the documented `actor:Copilot` filte
      -H 'X-GitHub-Api-Version: 2026-03-10' \
      "/enterprises/{{enterprise.slug}}/audit-log" \
      -f phrase='action:copilot' -f per_page=100
+   ```
+
+   ```powershell profile
+   gh api --method GET -H 'Accept: application/vnd.github+json' -H 'X-GitHub-Api-Version: 2026-03-10' "/enterprises/{{enterprise.slug}}/audit-log" -f phrase='action:copilot' -f per_page=100
    ```
 
 4. Optionally save a paginated Copilot snapshot in a new local directory:
@@ -702,6 +792,16 @@ If access or events are unavailable, review the documented `actor:Copilot` filte
      -f phrase='action:copilot' -f include='web' -f per_page=100 \
      > copilot-audit-pages.json &&
    jq 'add' copilot-audit-pages.json > copilot-audit.json
+   ```
+
+   ```powershell profile
+   & {
+     $response = gh api --method GET --paginate --slurp -H 'Accept: application/vnd.github+json' -H 'X-GitHub-Api-Version: 2026-03-10' "/enterprises/{{enterprise.slug}}/audit-log" -f phrase='action:copilot' -f include='web' -f per_page=100
+     if ($LASTEXITCODE -ne 0) { throw 'Audit request failed.' }
+     $response | Set-Content -Encoding utf8 copilot-audit-pages.json -ErrorAction Stop
+     $pages = $response | ConvertFrom-Json -ErrorAction Stop
+     ConvertTo-Json -InputObject @($pages | ForEach-Object { $_ }) -Depth 100 | Set-Content -Encoding utf8 copilot-audit.json -ErrorAction Stop
+   }
    ```
 
 5. Inspect any returned records for the action, time, actor, and `agent_session_id`. To retrieve agent events instead, repeat the request with `phrase='actor:Copilot'` and a different output filename. If no matching events are available, distinguish that from an authorization error.

@@ -11,6 +11,18 @@ policy IDs before adding the file to the active manifest.
 
 An illustrative [repository link](https://example.test/{{organization.slug}}/{{repository.name}}/settings "fallback=https://example.test/organizations") uses the profile's repository name, defaulting to `pets-workshop`. This synthetic URL is not a GitHub admin-page mapping.
 
+Adjacent shell alternatives render as one command, using PowerShell on Windows and Bash on macOS/Linux:
+
+```sh profile
+EXAMPLE={{input.example}}
+printf '%s\n' "$EXAMPLE"
+```
+
+```powershell profile
+$EXAMPLE={{input.example}}
+Write-Output $EXAMPLE
+```
+
 ## Decisions
 
 ### Decision: EX-01
