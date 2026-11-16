@@ -19,7 +19,7 @@ test("Context Markdown retains existing choice identities, repository scope and 
   assert.ok(path.decisions.every((decision) => decision.options.every((option) => !option.deferred)));
   assert.equal(recipe.id, "cm-lab-exercise");
   assert.equal(recipe.target, "repository");
-  assert.match(recipe.sections.Safety, /Use your \[Petstore workshop repository\]/);
+  assert.match(recipe.sections.Safety, /Use your \[test repository\]/);
   assert.match(recipe.sections.Steps, /git restore --source=HEAD --staged --worktree -- src\/slug\.js/);
   assert.match(recipe.sections.Steps, /git clean -n -- src\/slug\.js/);
   assert.match(recipe.sections.Steps, /git clean -f -- src\/slug\.js/);
@@ -134,7 +134,7 @@ test("new Context guidance keeps source sharing, Memory and enforcement boundari
   for (const id of ["cm-memory-review-managed", "cm-memory-review-broader"]) {
     assert.match(steps(id), /enabled per user, not per repository/);
     assert.match(steps(id), /28 days.*reset the timer/);
-    assert.match(steps(id), /Keep personal data out of workshop evidence/);
+    assert.match(steps(id), /Keep personal data out of lab evidence/);
     assert.match(steps(id), /This choice does not change Memory modes or retention settings/);
     assert.doesNotMatch(steps(id), /Neither option/);
   }

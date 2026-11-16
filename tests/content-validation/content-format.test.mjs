@@ -100,11 +100,12 @@ test("profile URL templates validate known variables and safely resolve or fall 
   assert.ok(codes(unsafeFallback).includes("E_LINK"), JSON.stringify(unsafeFallback.diagnostics));
 });
 
-test("repository links use validated profile names, default legacy profiles, and preserve explicit shared repositories", () => {
+test("repository links require a configured name and preserve explicit shared repositories", () => {
   const target = 'https://example.test/{{organization.slug}}/{{repository.name}}/settings "fallback=https://example.test/organizations"';
   const link = `[Repository Settings](${target})`;
   assert.deepEqual(parse(source.replace("Read this fictional example.", link)).diagnostics, []);
-  assert.equal(resolveContentLinkTarget(target, { organizationSlug: "lab-org" }), "https://example.test/lab-org/pets-workshop/settings");
+  assert.equal(resolveContentLinkTarget(target, { organizationSlug: "lab-org" }), "https://example.test/organizations");
+  assert.equal(resolveContentLinkTarget(target, { organizationSlug: "lab-org", repositoryName: "pets-workshop" }), "https://example.test/lab-org/pets-workshop/settings");
   assert.equal(resolveContentLinkTarget(target, { organizationSlug: "lab-org", repositoryName: "other.repo_name" }), "https://example.test/lab-org/other.repo_name/settings");
   for (const repositoryName of ["", null, ".", "..", "../other", "repo/name", "repo?x", "repo#x", "repo%2fother", "<script>", "a".repeat(101)]) {
     assert.equal(resolveContentLinkTarget(target, { organizationSlug: "lab-org", repositoryName }), "https://example.test/organizations", repositoryName);
@@ -114,7 +115,8 @@ test("repository links use validated profile names, default legacy profiles, and
   assert.equal(resolveContentLinkTarget("https://example.test/{{organization.slug}}/.github-private/blob/HEAD/file", {
     organizationSlug: "lab-org", repositoryName: "other",
   }), "https://example.test/lab-org/.github-private/blob/HEAD/file");
-  assert.match(renderMarkdown(link, { organizationSlug: "lab-org" }), /href="https:\/\/example.test\/lab-org\/pets-workshop\/settings"/);
+  assert.match(renderMarkdown(link, { organizationSlug: "lab-org" }), /href="https:\/\/example.test\/organizations"/);
+  assert.equal(resolveContentCommand("{{repository.name}}", { organizationSlug: "lab-org" }), "YOUR-TEST-REPOSITORY");
   assert.deepEqual(parse(source.replace("Read this fictional example.", "```sh profile\npwd {{repository.name}}\n```")).diagnostics, []);
   assert.deepEqual(parse(source.replace("Read this fictional example.", "```sh profile\nREPORT_ID={{input.report-id}}\n```")).diagnostics, []);
   assert.ok(codes(parse(source.replace("Read this fictional example.", "```sh profile\nREPORT_ID={{input.Report-ID}}\n```"))).includes("E_TEMPLATE_VAR"));

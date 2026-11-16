@@ -14,10 +14,10 @@ test("every block numbers its decisions sequentially in authored order", () => {
   }
 });
 
-test("single-user copy is consistent outside Agent Governance", () => {
-  for (const path of content.paths.filter(({ id }) => id !== "agent-governance")) {
+test("participant copy does not assume pre-provisioned event accounts", () => {
+  for (const path of content.paths) {
     assert.doesNotMatch(path.sourceText,
-      /assigned test|assigned organization-owned|other participants|shared sandbox|facilitator|test user|other users' data/i, path.id);
+      /Universe\s*26|ghuniverse|Petstore workshop|pets-workshop|you are the only user|we only have one user|sandbox already has an Azure subscription|provided Azure subscription|lab accounts cannot|this sandbox has no usage metrics/i, path.id);
   }
 });
 
@@ -72,16 +72,13 @@ test("code fences in steps remain nested under their list items", () => {
   const reporting = billing.recipes.find(({ id }) => id === "bc-user-visibility");
   const rendered = renderMarkdown(reporting.sections.Steps);
   assert.match(rendered, /<li[^>]*>[\s\S]*<pre/);
-  assert.match(rendered, /2026-10-01/);
+  assert.match(rendered, /data-command-input="start-date"/);
 });
 
-test("intentionally time-bound workshop wording is preserved", () => {
-  for (const id of ["access-management", "user-governance", "billing-cost-control"]) {
-    assert.match(content.paths.find((path) => path.id === id).sourceText, /\bcurrently\b/);
-  }
+test("billing report commands accept a reporting period instead of event dates", () => {
   const billing = content.paths.find(({ id }) => id === "billing-cost-control").sourceText;
-  assert.match(billing, /This Universe 26, we announced/);
-  assert.match(billing, /START_DATE='2026-10-01'\n   END_DATE='2026-10-31'/);
+  assert.doesNotMatch(billing, /October 2026|START_DATE='2026-10-01'/);
+  assert.match(billing, /START_DATE=\{\{input.start-date\}\}\n   END_DATE=\{\{input.end-date\}\}/);
 });
 
 test("User Governance introduces policy states and explains mixed ownership at enterprise scope", () => {

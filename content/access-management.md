@@ -141,9 +141,6 @@ You can choose whether to do this manually, through API-based automation, or thr
 
 An IdP group does not assign Copilot by itself. Connect it to an organization or enterprise team, then assign Copilot to that team. Only enterprises with Enterprise Managed Users can connect an enterprise team to an IdP group. Without Enterprise Managed Users, use team synchronization with organization teams.
 
-> [!WARNING]
-> This lab enterprise does not use Enterprise Managed Users or an identity provider. You cannot connect teams to IdP groups here.
-
 > [!IMPORTANT]
 > Adding someone to the IdP group happens outside GitHub. Include this in your identity-management or onboarding process. If users must acknowledge a usage policy or complete training, check that before adding them to the group. For example, your process might ask them to acknowledge rules for using a company license in personal or private projects.
 
@@ -371,9 +368,6 @@ Without Enterprise Managed Users, a CSV upload searches all GitHub.com users. It
 5. Expect a delay. With Enterprise Managed Users, GitHub reconciles membership daily and on each SCIM update. If an IdP group connected to an enterprise team grows past 5,000 users, syncing stops.
 6. Grant Copilot to the connected team. Joining or leaving the IdP group then grants or removes the license.
 
-> [!WARNING]
-> This lab enterprise does not use Enterprise Managed Users or an identity provider. You cannot try these steps here. Apply them in your production enterprise.
-
 See [Managing team memberships with identity provider groups](https://docs.github.com/en/enterprise-cloud@latest/admin/managing-iam/provisioning-user-accounts-with-scim/managing-team-memberships-with-identity-provider-groups) and [Managing team synchronization for your organization](https://docs.github.com/en/enterprise-cloud@latest/organizations/managing-saml-single-sign-on-for-your-organization/managing-team-synchronization-for-your-organization).
 
 ### Recipe: am-team-assignment
@@ -397,14 +391,14 @@ See [Managing team memberships with identity provider groups](https://docs.githu
 
 #### Steps
 
-1. For organization licenses, call `POST /orgs/{org}/copilot/billing/selected_users` or `POST /orgs/{org}/copilot/billing/selected_teams`. These command examples are reference-only because this lab cannot assign licenses to other people.
+1. For organization licenses, call `POST /orgs/{org}/copilot/billing/selected_users` or `POST /orgs/{org}/copilot/billing/selected_teams`. These command examples are reference-only; do not run them as part of this exercise.
 
    ```sh manual
    gh api --method POST "/orgs/YOUR-ORG/copilot/billing/selected_users" -f "selected_usernames[]=YOUR-USERNAME"
    gh api --method POST "/orgs/YOUR-ORG/copilot/billing/selected_teams" -f "selected_teams[]=YOUR-TEAM"
    ```
 
-2. For direct enterprise licenses, call `POST /enterprises/{enterprise}/copilot/billing/selected_users` or `POST /enterprises/{enterprise}/copilot/billing/selected_enterprise_teams`. These command examples are reference-only because this lab cannot assign licenses to other people.
+2. For direct enterprise licenses, call `POST /enterprises/{enterprise}/copilot/billing/selected_users` or `POST /enterprises/{enterprise}/copilot/billing/selected_enterprise_teams`. These command examples are reference-only; do not run them as part of this exercise.
 
    ```sh manual
    gh api --method POST "/enterprises/YOUR-ENTERPRISE/copilot/billing/selected_users" -f "selected_usernames[]=YOUR-USERNAME"
@@ -463,7 +457,7 @@ This applies to code completion, chat in the IDE, Copilot Chat on GitHub, GitHub
 
 1. Choose an inactivity limit and a grace period. GitHub's example reminds users after 30 days of inactivity and plans removal after a further 30 days.
 2. To review by hand, navigate to your **[Organization Settings -> Copilot -> Access](https://github.com/organizations/{{organization.slug}}/settings/copilot/seat_management "fallback=https://github.com/settings/organizations")**. Sort by last activity, or download the activity report.
-3. To automate, call `GET /orgs/{org}/copilot/billing/seats` and read `last_activity_at`. Enterprises and enterprise teams have similar endpoints. To try it with GitHub CLI, run the command below. It uses the organization saved in your workshop profile.
+3. To automate, call `GET /orgs/{org}/copilot/billing/seats` and read `last_activity_at`. Enterprises and enterprise teams have similar endpoints. To try it with GitHub CLI, run the command below. It uses the organization saved in your profile.
 
    ```sh profile
    gh api "/orgs/{{organization.slug}}/copilot/billing/seats"
@@ -540,7 +534,7 @@ Use the steps for your **License source** choice. See [Prepare Copilot in your I
 
 1. Navigate to your **[Enterprise Settings -> Billing and licensing -> Licensing -> Copilot -> Manage](https://github.com/enterprises/{{enterprise.slug}}/licensing/copilot "fallback=https://github.com/settings/enterprises")**. Under `Organization access`, confirm that your dedicated Copilot organization is enabled. If access is allowed for specific organizations, check that this organization is on the `Organizations` tab.
 2. Navigate to your **[Organization Settings -> Copilot -> Access](https://github.com/organizations/{{organization.slug}}/settings/copilot/seat_management "fallback=https://github.com/settings/organizations")** in the dedicated organization. Find your user and note whether the license comes from the user, a team, or all members.
-3. Optionally, if you already have authorized access to the REST API, use `GET /enterprises/{enterprise}/copilot/billing/seats` to find your user's seat. Check that its `organization` is your dedicated organization. This endpoint is in public preview and requires enterprise-owner or billing-manager access. Do not share credentials. Keep downloaded data private. See the [REST API reference](https://docs.github.com/en/enterprise-cloud@latest/rest/copilot/copilot-user-management#list-all-copilot-seat-assignments-for-an-enterprise). This command uses the enterprise saved in your workshop profile.
+3. Optionally, if you already have authorized access to the REST API, use `GET /enterprises/{enterprise}/copilot/billing/seats` to find your user's seat. Check that its `organization` is your dedicated organization. This endpoint is in public preview and requires enterprise-owner or billing-manager access. Do not share credentials. Keep downloaded data private. See the [REST API reference](https://docs.github.com/en/enterprise-cloud@latest/rest/copilot/copilot-user-management#list-all-copilot-seat-assignments-for-an-enterprise). This command uses the enterprise saved in your profile.
 
    ```sh profile
    gh api "/enterprises/{{enterprise.slug}}/copilot/billing/seats"
@@ -550,7 +544,7 @@ Use the steps for your **License source** choice. See [Prepare Copilot in your I
 6. Back on the organization's access page, sort by last activity and note your user's last-reported Copilot activity. Activity can take up to 24 hours to appear, so a missing or unchanged timestamp does not show that the license or Copilot is not working.
 
 > [!TIP]
-> If you do not see Copilot activity, start a [Copilot Chat session on GitHub.com](https://github.com/copilot), or open your [Petstore workshop repository](https://github.com/{{organization.slug}}/{{repository.name}} "fallback=https://github.com/settings/organizations") and start a [Copilot cloud agent session](https://docs.github.com/en/enterprise-cloud@latest/copilot/how-tos/use-copilot-agents/cloud-agent/use-cloud-agent-on-github) there. Ask the agent to summarize the repository without changing files, then repeat the activity check.
+> If you do not see Copilot activity, start a [Copilot Chat session on GitHub.com](https://github.com/copilot), or open your [test repository](https://github.com/{{organization.slug}}/{{repository.name}} "fallback=https://github.com/settings/organizations") and start a [Copilot cloud agent session](https://docs.github.com/en/enterprise-cloud@latest/copilot/how-tos/use-copilot-agents/cloud-agent/use-cloud-agent-on-github) there. Ask the agent to summarize the repository without changing files, then repeat the activity check.
 
 ##### Expected result
 
@@ -562,7 +556,7 @@ Your user's license comes from the dedicated Copilot organization, and that orga
 
 1. Navigate to your **[Enterprise Settings -> Billing and licensing -> Licensing -> Copilot -> Manage](https://github.com/enterprises/{{enterprise.slug}}/licensing/copilot "fallback=https://github.com/settings/enterprises")**. Under `Organization access`, confirm that your user's organization is enabled. If access is allowed for specific organizations, check that it is on the `Organizations` tab.
 2. Navigate to your **[Organization Settings -> Copilot -> Access](https://github.com/organizations/{{organization.slug}}/settings/copilot/seat_management "fallback=https://github.com/settings/organizations")**. Find your user and note whether the license comes from the user, a team, or all members. If your user belongs to more than one organization, check each one.
-3. Optionally, if you already have authorized access to the REST API, use `GET /enterprises/{enterprise}/copilot/billing/seats`. The response has one seat entry for each organization or enterprise team that grants the user access, so more than one entry for your user means more than one license source. This endpoint is in public preview and requires enterprise-owner or billing-manager access. Do not share credentials. Keep downloaded data private. See the [REST API reference](https://docs.github.com/en/enterprise-cloud@latest/rest/copilot/copilot-user-management#list-all-copilot-seat-assignments-for-an-enterprise). This command uses the enterprise saved in your workshop profile.
+3. Optionally, if you already have authorized access to the REST API, use `GET /enterprises/{enterprise}/copilot/billing/seats`. The response has one seat entry for each organization or enterprise team that grants the user access, so more than one entry for your user means more than one license source. This endpoint is in public preview and requires enterprise-owner or billing-manager access. Do not share credentials. Keep downloaded data private. See the [REST API reference](https://docs.github.com/en/enterprise-cloud@latest/rest/copilot/copilot-user-management#list-all-copilot-seat-assignments-for-an-enterprise). This command uses the enterprise saved in your profile.
 
    ```sh profile
    gh api "/enterprises/{{enterprise.slug}}/copilot/billing/seats"
@@ -572,7 +566,7 @@ Your user's license comes from the dedicated Copilot organization, and that orga
 6. Back on the organization's access page, sort by last activity and note your user's last-reported Copilot activity. Activity can take up to 24 hours to appear, so a missing or unchanged timestamp does not show that the license or Copilot is not working.
 
 > [!TIP]
-> If you do not see Copilot activity, start a [Copilot Chat session on GitHub.com](https://github.com/copilot), or open your [Petstore workshop repository](https://github.com/{{organization.slug}}/{{repository.name}} "fallback=https://github.com/settings/organizations") and start a [Copilot cloud agent session](https://docs.github.com/en/enterprise-cloud@latest/copilot/how-tos/use-copilot-agents/cloud-agent/use-cloud-agent-on-github) there. Ask the agent to summarize the repository without changing files, then repeat the activity check.
+> If you do not see Copilot activity, start a [Copilot Chat session on GitHub.com](https://github.com/copilot), or open your [test repository](https://github.com/{{organization.slug}}/{{repository.name}} "fallback=https://github.com/settings/organizations") and start a [Copilot cloud agent session](https://docs.github.com/en/enterprise-cloud@latest/copilot/how-tos/use-copilot-agents/cloud-agent/use-cloud-agent-on-github) there. Ask the agent to summarize the repository without changing files, then repeat the activity check.
 
 ##### Expected result
 
@@ -584,7 +578,7 @@ You can name each organization that gives your user a license and how it assigns
 
 1. Navigate to your **[Enterprise Settings -> Billing and licensing -> Licensing -> Copilot -> Manage](https://github.com/enterprises/{{enterprise.slug}}/licensing/copilot "fallback=https://github.com/settings/enterprises")**.
 2. Look for your user on the `All members` tab, then on the `Enterprise Teams` tab. Note whether the license is assigned to the user directly or through an enterprise team.
-3. Optionally, if you already have authorized access to the REST API, use `GET /enterprises/{enterprise}/copilot/billing/seats` to find your user's seat. Note its `assigning_team` and `last_activity_at`. Users must have telemetry enabled in their IDE for IDE activity to appear in `last_activity_at`. This endpoint is in public preview and requires enterprise-owner or billing-manager access. Do not share credentials. Keep downloaded data private. See the [REST API reference](https://docs.github.com/en/enterprise-cloud@latest/rest/copilot/copilot-user-management#list-all-copilot-seat-assignments-for-an-enterprise). This command uses the enterprise saved in your workshop profile.
+3. Optionally, if you already have authorized access to the REST API, use `GET /enterprises/{enterprise}/copilot/billing/seats` to find your user's seat. Note its `assigning_team` and `last_activity_at`. Users must have telemetry enabled in their IDE for IDE activity to appear in `last_activity_at`. This endpoint is in public preview and requires enterprise-owner or billing-manager access. Do not share credentials. Keep downloaded data private. See the [REST API reference](https://docs.github.com/en/enterprise-cloud@latest/rest/copilot/copilot-user-management#list-all-copilot-seat-assignments-for-an-enterprise). This command uses the enterprise saved in your profile.
 
    ```sh profile
    gh api "/enterprises/{{enterprise.slug}}/copilot/billing/seats"
@@ -593,7 +587,7 @@ You can name each organization that gives your user a license and how it assigns
 5. Note whether Copilot answers. If not, note the message and check the license, the sign-in, and `Policies for enterprise-assigned users`.
 
 > [!TIP]
-> If you do not see Copilot activity, start a [Copilot Chat session on GitHub.com](https://github.com/copilot), or open your [Petstore workshop repository](https://github.com/{{organization.slug}}/{{repository.name}} "fallback=https://github.com/settings/organizations") and start a [Copilot cloud agent session](https://docs.github.com/en/enterprise-cloud@latest/copilot/how-tos/use-copilot-agents/cloud-agent/use-cloud-agent-on-github) there. Ask the agent to summarize the repository without changing files, then repeat the activity check.
+> If you do not see Copilot activity, start a [Copilot Chat session on GitHub.com](https://github.com/copilot), or open your [test repository](https://github.com/{{organization.slug}}/{{repository.name}} "fallback=https://github.com/settings/organizations") and start a [Copilot cloud agent session](https://docs.github.com/en/enterprise-cloud@latest/copilot/how-tos/use-copilot-agents/cloud-agent/use-cloud-agent-on-github) there. Ask the agent to summarize the repository without changing files, then repeat the activity check.
 
 ##### Expected result
 
@@ -606,7 +600,7 @@ Your user's license comes directly from the enterprise, either to the user or th
 1. Navigate to your **[Enterprise Settings -> Billing and licensing -> Licensing -> Copilot -> Manage](https://github.com/enterprises/{{enterprise.slug}}/licensing/copilot "fallback=https://github.com/settings/enterprises")**. Look for your user on the `All members` and `Enterprise Teams` tabs.
 2. On the same page, check `Organization access`. Note which organizations are enabled to assign licenses.
 3. Navigate to your **[Organization Settings -> Copilot -> Access](https://github.com/organizations/{{organization.slug}}/settings/copilot/seat_management "fallback=https://github.com/settings/organizations")** and look for your user. Note whether the license comes from the user, a team, or all members.
-4. Optionally, if you already have authorized access to the REST API, use `GET /enterprises/{enterprise}/copilot/billing/seats`. The response has one seat entry for each organization or enterprise team that grants the user access. Note each entry's `organization` or `assigning_team`. This endpoint is in public preview and requires enterprise-owner or billing-manager access. Do not share credentials. Keep downloaded data private. See the [REST API reference](https://docs.github.com/en/enterprise-cloud@latest/rest/copilot/copilot-user-management#list-all-copilot-seat-assignments-for-an-enterprise). This command uses the enterprise saved in your workshop profile.
+4. Optionally, if you already have authorized access to the REST API, use `GET /enterprises/{enterprise}/copilot/billing/seats`. The response has one seat entry for each organization or enterprise team that grants the user access. Note each entry's `organization` or `assigning_team`. This endpoint is in public preview and requires enterprise-owner or billing-manager access. Do not share credentials. Keep downloaded data private. See the [REST API reference](https://docs.github.com/en/enterprise-cloud@latest/rest/copilot/copilot-user-management#list-all-copilot-seat-assignments-for-an-enterprise). This command uses the enterprise saved in your profile.
 
    ```sh profile
    gh api "/enterprises/{{enterprise.slug}}/copilot/billing/seats"
@@ -616,7 +610,7 @@ Your user's license comes directly from the enterprise, either to the user or th
 7. Note whether Copilot answers. If not, note the message and check the license, the sign-in, and the chat policies of the source that assigned the license.
 
 > [!TIP]
-> If you do not see Copilot activity, start a [Copilot Chat session on GitHub.com](https://github.com/copilot), or open your [Petstore workshop repository](https://github.com/{{organization.slug}}/{{repository.name}} "fallback=https://github.com/settings/organizations") and start a [Copilot cloud agent session](https://docs.github.com/en/enterprise-cloud@latest/copilot/how-tos/use-copilot-agents/cloud-agent/use-cloud-agent-on-github) there. Ask the agent to summarize the repository without changing files, then repeat the activity check.
+> If you do not see Copilot activity, start a [Copilot Chat session on GitHub.com](https://github.com/copilot), or open your [test repository](https://github.com/{{organization.slug}}/{{repository.name}} "fallback=https://github.com/settings/organizations") and start a [Copilot cloud agent session](https://docs.github.com/en/enterprise-cloud@latest/copilot/how-tos/use-copilot-agents/cloud-agent/use-cloud-agent-on-github) there. Ask the agent to summarize the repository without changing files, then repeat the activity check.
 
 ##### Expected result
 

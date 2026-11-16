@@ -12,7 +12,7 @@ const workshop = await createWorkshop({
 });
 const entry = await openServer({
   workshop, documentId: "preview", dev: args.includes("--dev"),
-  discover: async () => ({ profile: null, error: { code: "not-found", message: "No lab enterprise found in this test preview." } }),
+  discover: async () => ({ profile: null, error: { code: "not-found", message: "No enterprise found in this test preview." } }),
   checkAuth: async () => ({ status: "ready", account: "octocat", missingScopes: [], message: "GitHub CLI is signed in as @octocat." }),
   log: (message) => process.stderr.write(message + "\n")
 });

@@ -93,7 +93,7 @@ test("AM-LAB validation variants offer Copilot activity troubleshooting", () => 
     const body = validation.split(`#### Variant: ${variant}`)[1]?.split(/\n#### Variant:|\n### Exercise:/)[0];
     assert.ok(body, `missing AM-LAB validation variant ${variant}`);
     assert.match(body, /Copilot Chat session on GitHub\.com/);
-    assert.match(body, /your \[Petstore workshop repository\]\(https:\/\/github\.com\/\{\{organization\.slug\}\}\/\{\{repository\.name\}\} "fallback=https:\/\/github\.com\/settings\/organizations"\)/);
+    assert.match(body, /your \[test repository\]\(https:\/\/github\.com\/\{\{organization\.slug\}\}\/\{\{repository\.name\}\} "fallback=https:\/\/github\.com\/settings\/organizations"\)/);
     assert.match(body, /Copilot cloud agent session/);
   }
 });

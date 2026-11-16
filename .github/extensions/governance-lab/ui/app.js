@@ -657,7 +657,7 @@ function refreshProfile() {
     command.textContent = resolveContentCommand(command.dataset.profileCommand, state.profile, {}, commandShell);
   }
 }
-async function detectLabProfile() {
+async function detectProfile() {
   if (profileDetection !== "idle") return;
   if (state.profile?.enterpriseSlug && state.profile?.organizationSlug) {
     profileDetection = "configured"; refreshProfile(); return;
@@ -666,7 +666,7 @@ async function detectLabProfile() {
   const epoch = profileEpoch;
   try { authState = await (await request("/api/auth/status")).json(); }
   catch (reason) { authState = { status: "failed", account: null, missingScopes: [], message: reason.message }; }
-  if (epoch !== profileEpoch) { profileDetection = "idle"; void detectLabProfile(); return; }
+  if (epoch !== profileEpoch) { profileDetection = "idle"; void detectProfile(); return; }
   if (authState.status !== "ready") {
     profileDetection = "signin"; refreshProfile();
     if (signInPending && !signInTimer) signInTimer = setTimeout(pollSignIn, SIGN_IN_POLL_MS);
@@ -675,9 +675,9 @@ async function detectLabProfile() {
   stopSignInPolling();
   try {
     const { profile, error: failure, notices = [] } = await (await request("/api/profile/discover", { automatic: true })).json();
-    if (epoch !== profileEpoch) { profileDetection = "idle"; void detectLabProfile(); return; }
+    if (epoch !== profileEpoch) { profileDetection = "idle"; void detectProfile(); return; }
     if (failure) throw Object.assign(new Error(failure.message), { code: failure.code });
-    if (!profile) throw new Error("No lab enterprise was detected.");
+    if (!profile) throw new Error("No enterprise was detected.");
     if (drafts.has(profileKey) || ["enterpriseSlug", "organizationSlug"].some((key) => state.profile?.[key] && state.profile[key] !== profile[key])) {
       throw new Error("Your existing profile was kept. Complete the profile manually.");
     }
@@ -685,10 +685,10 @@ async function detectLabProfile() {
     const keepRepository = state.profile?.repositoryName && state.profile.repositoryName !== DEFAULT_REPOSITORY_NAME;
     const detectedProfile = { ...state.profile, ...slugs, ...(repositoryName && !keepRepository ? { repositoryName } : {}) };
     rememberDraft(profileKey, detectedProfile); pendingSaves.set(profileKey, detectedProfile);
-    if (!await flushSaves()) throw new Error("The detected lab profile could not be saved. Configure it manually.");
+    if (!await flushSaves()) throw new Error("The detected profile could not be saved. Configure it manually.");
     profileDetection = "configured"; profileNotice = notices.join(" ");
   } catch (reason) {
-    if (epoch !== profileEpoch) { profileDetection = "idle"; void detectLabProfile(); return; }
+    if (epoch !== profileEpoch) { profileDetection = "idle"; void detectProfile(); return; }
     profileDetection = "failed"; profileDetectionError = reason.message; profileDetectionCode = reason.code ?? "";
   }
   refreshProfile();
@@ -705,7 +705,7 @@ async function pollSignIn() {
   if (epoch !== profileEpoch || profileDetection !== "signin" || !signInPending) return;
   authState = next;
   // When switching accounts, the previous ready account is not the new sign-in.
-  if (next.status === "ready" && next.account !== signInReplaces) { stopSignInPolling(); profileDetection = "idle"; void detectLabProfile(); return; }
+  if (next.status === "ready" && next.account !== signInReplaces) { stopSignInPolling(); profileDetection = "idle"; void detectProfile(); return; }
   if (Date.now() > signInDeadline) signInPending = false;
   else signInTimer = setTimeout(pollSignIn, SIGN_IN_POLL_MS);
   refreshProfile();
@@ -726,7 +726,7 @@ function checkSignInAgain() {
   clearTimeout(signInTimer); signInTimer = null;
   if (signInPending) signInDeadline = Date.now() + SIGN_IN_TIMEOUT_MS;
   profileDetection = "idle"; profileDetectionError = ""; profileDetectionCode = "";
-  void detectLabProfile();
+  void detectProfile();
 }
 function signInMarkup() {
   const wrongAccount = profileDetection === "failed" && ["not-found", "unauthenticated", "forbidden"].includes(profileDetectionCode);
@@ -741,19 +741,19 @@ function signInMarkup() {
     intro = "";
     actions = login;
   } else if (status === "missing-scopes") {
-    intro = `${html(authState.message)} Grant them to detect your lab enterprise, organization, and repository, or log in with your lab account instead.`;
+    intro = `${html(authState.message)} Grant them to detect your enterprise, organization, and repository, or use a different account.`;
     actions = `${button("refresh", "Grant admin scopes", true)}${button("login", "Use a different account")}${check}`;
   } else if (status === "ready" && signInPending) {
-    intro = "Complete the sign-in for your lab account in the terminal and browser.";
+    intro = "Complete the sign-in for your account in the terminal and browser.";
     actions = check;
   } else if (status === "gh-missing") {
     intro = html(authState.message);
     actions = check;
   } else if (status === "signed-out") {
-    intro = `Log into GitHub CLI with your lab account so the workshop can detect your enterprise, organization, and repository. ${purpose}`;
+    intro = `Log into GitHub CLI so the lab can detect your enterprise, organization, and repository. ${purpose}`;
     actions = `${login}${check}`;
   } else {
-    intro = `${html(authState?.message ?? "GitHub CLI sign-in status is unknown.")} Log into GitHub CLI with your lab account to detect your enterprise, organization, and repository. ${purpose}`;
+    intro = `${html(authState?.message ?? "GitHub CLI sign-in status is unknown.")} Log into GitHub CLI to detect your enterprise, organization, and repository. ${purpose}`;
     actions = `${login}${check}`;
   }
   const progress = signInError ? html(signInError) :
@@ -764,13 +764,22 @@ function signInMarkup() {
 }
 function renderProfile() {
   const profile = state.profile ?? { enterpriseSlug: "", organizationSlug: "" };
-  const field = (id, name, label, value) => `<div class="profile-field">
-      <label for="${id}">${label}</label>
-      <input id="${id}" name="${name}" type="text" maxlength="100" autocomplete="off" spellcheck="false" value="${html(value)}">
+  const field = (id, name, label, value, title, help) => `<div class="profile-field">
+      <label for="${id}-choice">${title}</label>
+      <p id="${id}-help" class="profile-detected-note">${help}</p>
+      <span class="profile-select-wrap"><select id="${id}-choice" class="form-select" data-profile-pick="${id}" aria-describedby="${id}-help">
+        <option value="">Choose ${title.toLowerCase()}…</option>
+        ${value ? `<option value="${html(value)}" selected>${html(value)}</option>` : ""}
+        <option value=":other:">Other…</option>
+      </select></span>
+      <div class="profile-manual" hidden>
+        <label for="${id}">${label}</label>
+        <input id="${id}" name="${name}" type="text" maxlength="100" autocomplete="off" spellcheck="false" value="${html(value)}" aria-describedby="${id}-help">
+      </div>
       <div class="profile-detected" data-profile-detected="${name}" hidden></div>
     </div>`;
   return `<section class="enterprise-profile" aria-labelledby="enterprise-profile-title">
-    <div class="enterprise-profile-copy"><h2 id="enterprise-profile-title" class="sr-only">Your lab accounts</h2>
+    <div class="enterprise-profile-copy"><h2 id="enterprise-profile-title" class="sr-only">Your accounts</h2>
       <div id="profile-summary" class="profile-summary" role="status" aria-live="polite">${profileSummary()}</div>
       <p id="profile-detection-error" class="profile-detection-error" hidden></p>
       <div id="profile-signin" class="profile-signin profile-home-only" role="region" aria-label="GitHub CLI sign-in" aria-live="polite" hidden></div>
@@ -783,7 +792,8 @@ function renderProfile() {
     <div class="profile-panel-header"><h2 id="profile-panel-title">Enterprise profile</h2>
       <button class="btn btn-icon" type="button" data-profile-close aria-label="Close enterprise profile">${icon("close")}</button></div>
     <div class="profile-panel-body">
-      <p class="muted">Optional identifiers personalize authored links and commands. They are not checked against GitHub. Commands are displayed for you to review and run; they are not executed automatically.</p>
+      <p class="muted">Choose the targets you want to explore. The canvas uses these identifiers in settings links and commands, so you do not have to replace placeholders yourself. This does not change settings or grant access.</p>
+      <p class="muted">Select a detected or saved target, or choose <strong>Other…</strong> to enter one manually. Manual entries are not checked against GitHub. Review the target and command before running anything.</p>
       <section class="profile-discovery" aria-labelledby="profile-discovery-title">
         <h3 id="profile-discovery-title">Detect with GitHub CLI</h3>
         <p class="muted">Lists the organizations and enterprises your active <code>gh auth login</code> account belongs to, using read-only API requests on this computer. Results are not saved.</p>
@@ -791,12 +801,12 @@ function renderProfile() {
         <p id="profile-discovery-status" class="profile-discovery-status" role="status" aria-live="polite"></p>
       </section>
       <form id="profile-form">
-        ${field("enterprise-slug", "enterpriseSlug", "Enterprise slug", profile.enterpriseSlug)}
-        ${field("organization-slug", "organizationSlug", "Organization slug", profile.organizationSlug)}
-        ${field("repository-name", "repositoryName", "Repository name", profile.repositoryName ?? DEFAULT_REPOSITORY_NAME)}
+        ${field("enterprise-slug", "enterpriseSlug", "Enterprise slug", profile.enterpriseSlug, "Enterprise", "Used for enterprise-wide policy, billing, and reporting links and commands. Enter the enterprise identifier from its URL, not its display name.")}
+        ${field("organization-slug", "organizationSlug", "Organization slug", profile.organizationSlug, "Organization", "Used for organization settings and organization-scoped commands. Choose the organization you intend to use within your enterprise.")}
+        ${field("repository-name", "repositoryName", "Repository name", profile.repositoryName ?? DEFAULT_REPOSITORY_NAME, "Repository", 'Use an example repository to check how your policy settings behave. Any repository you are authorized to test in is suitable. For a starting point, we recommend forking <a href="https://github.com/github-samples/copilot-workshops" target="_blank" rel="noopener noreferrer">github-samples/copilot-workshops<span class="sr-only"> (new tab)</span></a> into your chosen organization. Combined with the organization above for repository links and commands. Enter the repository name only, without the owner or a full URL.')}
       </form>
       <p id="profile-error" class="profile-error" role="alert" tabindex="-1" hidden></p>
-      <p class="muted">Saved automatically with this workshop document. Profile values are omitted from exports.</p>
+      <p class="muted">Saved automatically with this lab document. Profile values are omitted from exports.</p>
     </div>
   </dialog>`;
 }
@@ -805,11 +815,14 @@ function renderDetected(name, result, kind) {
   if (!container) return;
   container.hidden = false;
   if (result.error) { container.innerHTML = `<p class="profile-detected-note">${html(result.error.message)}</p>`; return; }
-  if (!result.items.length) { container.innerHTML = `<p class="profile-detected-note">No ${kind} found for this GitHub CLI account. Enter a slug manually.</p>`; return; }
-  const id = `${input.id}-detected`;
-  container.innerHTML = `<label for="${id}">Detected ${kind} (${result.items.length})</label>
-    <span class="profile-select-wrap"><select id="${id}" class="form-select" data-profile-pick="${html(input.id)}"><option value="">Choose a detected ${kind === "enterprises" ? "enterprise" : "organization"}…</option>
-    ${result.items.map((item) => `<option value="${html(item.slug)}"${item.slug === input.value ? " selected" : ""}>${html(item.name === item.slug ? item.slug : `${item.name} (${item.slug})`)}</option>`).join("")}</select></span>`;
+  const select = profileHost.querySelector(`#${input.id}-choice`);
+  const manual = select.value === ":other:";
+  const saved = input.value && !result.items.some((item) => item.slug === input.value) ? [{ slug: input.value, name: input.value }] : [];
+  select.innerHTML = `<option value="">Choose ${kind === "enterprises" ? "enterprise" : "organization"}…</option>
+    ${[...saved, ...result.items].map((item) => `<option value="${html(item.slug)}">${html(item.name === item.slug ? item.slug : `${item.name} (${item.slug})`)}</option>`).join("")}
+    <option value=":other:">Other…</option>`;
+  select.value = manual ? ":other:" : input.value;
+  container.innerHTML = `<p class="profile-detected-note">${result.items.length ? `${result.items.length} detected. Choose Other… if your target is not listed.` : `No ${kind} found for this GitHub CLI account. Choose Other… to enter one manually.`}</p>`;
 }
 async function discoverProfile() {
   const button = profileHost.querySelector("#profile-discover"), message = profileHost.querySelector("#profile-discovery-status");
@@ -831,10 +844,18 @@ function openProfilePanel() {
   const panel = profileHost.querySelector("#profile-panel");
   if (!panel || panel.open) return;
   const profile = drafts.get(profileKey) ?? state.profile;
-  for (const input of panel.querySelectorAll("#profile-form input")) input.value = profile?.[input.name] ?? (input.name === "repositoryName" ? DEFAULT_REPOSITORY_NAME : "");
+  for (const input of panel.querySelectorAll("#profile-form input")) {
+    input.value = profile?.[input.name] ?? "";
+    const select = panel.querySelector(`#${input.id}-choice`);
+    if (input.value && ![...select.options].some((option) => option.value === input.value)) {
+      select.add(new Option(input.value, input.value), select.options.length - 1);
+    }
+    select.value = input.value;
+    input.closest(".profile-manual").hidden = true;
+  }
   panel.showModal();
   profileHost.querySelector("#profile-open").setAttribute("aria-expanded", "true");
-  panel.querySelector("#enterprise-slug").focus();
+  panel.querySelector("#enterprise-slug-choice").focus();
 }
 async function closeProfilePanel() {
   const panel = profileHost.querySelector("#profile-panel");
@@ -1057,6 +1078,7 @@ window.addEventListener("popstate", async () => {
   window.scrollTo(0, position?.scrollY ?? 0);
 });
 document.addEventListener("input", (event) => {
+  if (event.target.matches("[data-profile-pick]")) return;
   if (!event.target.closest("#workflow-form, #profile-form")) return;
   queueSave(); clearTimeout(saveTimer); saveTimer = setTimeout(flushSaves, 250);
 });
@@ -1092,7 +1114,10 @@ document.addEventListener("change", (event) => {
   }
   if (event.target.matches("[data-profile-pick]")) {
     const input = profileHost.querySelector(`#${event.target.dataset.profilePick}`);
-    if (!input || !event.target.value) return;
+    if (!input) return;
+    const manual = event.target.value === ":other:";
+    input.closest(".profile-manual").hidden = !manual;
+    if (manual) { input.focus(); return; }
     input.value = event.target.value;
     queueSave(); void flushSaves(); return;
   }
@@ -1131,7 +1156,7 @@ async function load(fresh = false) {
     if (fresh) setStatus("Content reloaded. Saved progress preserved.");
   } catch (reason) { showError(reason); setStatus(fresh ? "Could not reload content." : "Could not load saved progress."); }
   finally { setBusy(false); }
-  if (state && content) void detectLabProfile();
+  if (state && content) void detectProfile();
 }
 async function resetLab() {
   if (busy || !window.confirm("Reset all decisions, exercise progress, notes and history for this lab? Content will not be reloaded. A backup of saved progress is kept.")) return;
@@ -1219,7 +1244,7 @@ if (devMode) {
       working = false; setBusy(false); submit.disabled = false;
       name.disabled = mode !== "save"; choice.disabled = mode !== "restore";
       if (succeeded) dialog.close();
-      if (succeeded && mode === "restore") void detectLabProfile();
+      if (succeeded && mode === "restore") void detectProfile();
     }
   });
 }

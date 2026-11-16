@@ -62,6 +62,18 @@ test("command validation rejects unknown fields, stale, arbitrary, malformed, co
   assert.throws(() => validateTerminalCommand(inputFor(state, "printf '{{enterprise.slug}}'"), content, { ...state, profile: {} }), /Configure your enterprise, organization, or repository profile/);
 });
 
+test("repository commands require an explicit repository even for older two-field profiles", () => {
+  const command = 'gh repo view "{{organization.slug}}/{{repository.name}}"';
+  const repositoryContent = {
+    ...content, paths: [{ stages: { understand: { markdown: `\`\`\`sh profile\n${command}\n\`\`\`` } } }],
+  };
+  for (const repository of [{}, { repositoryName: "" }]) {
+    const state = { revision: 0, profile: { enterpriseSlug: "acme", organizationSlug: "platform", ...repository } };
+    assert.throws(() => validateTerminalCommand(inputFor(state, command), repositoryContent, state),
+      /Configure your enterprise, organization, or repository profile/);
+  }
+});
+
 test("native terminal adapter reuses one terminal per workshop document with the exact reviewed command", async () => {
   const calls = [];
   const session = { rpc: { canvas: { open: async (input) => { calls.push(input); return { instanceId: input.instanceId }; } } } };

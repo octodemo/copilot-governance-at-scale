@@ -37,29 +37,11 @@ option, edge case, or setting at once.
 
 ## Participant sandbox
 
-Each participant receives a pre-created Sandbox Enterprise and organization.
-The organization has a `.github-private` repository with
-`copilot/managed-settings.json` and an example Petstore workshop repository.
-Participants are enterprise and organization owners and the only user in their
-enterprise. They use a provided laptop with Copilot CLI, GitHub CLI, and the
-GitHub Copilot app installed and signed in as their pre-created sandbox user.
-The tracked provisioning setup for the organization and managed-settings file
-is described in `scripts/provisioning/README.md`.
+Participants bring their own authorized test environment and installed clients. Do not assume pre-created accounts, a single-user enterprise, matching enterprise and organization names, payment connections, sample repositories, managed settings, usage history, or telemetry backends.
 
-The enterprise is already connected to a GitHub-provided Azure subscription.
-Its subscription ID is fixed, and no additional subscriptions can be added.
-Do not include steps to change the subscription or payment connection.
+State the prerequisites for each exercise and preserve inspection-only or proposal-only alternatives when resources are missing. Confirm who else could be affected before changes. Use the configured repository name rather than a particular sample project; absent names have no default.
 
-The lab is a safe place to try settings hands-on. Participants should leave
-with learnings and ideas to adapt for their production instances. Because each
-participant is the sole user in their enterprise, role changes and assigning
-or removing licenses for other people cannot be fully practiced here. If these
-actions are a required part of a Configure step, explain that participants can
-visit the settings page and, where appropriate, create a team or role to learn
-where and how the setup works, but cannot assign other users or licenses in
-this lab. Treat those steps as demonstrations of the workflow, not completed
-assignments. If the production design depends on assigning people or licenses,
-add a brief hint to apply those assignments in the production instance.
+The lab supports learning and later adaptation, not unreviewed production changes. Keep payment changes, role assignments, and purchasing or removing other people's licenses outside the live walkthrough unless explicitly requested and separately reviewed. Do not turn generalization into new exercises.
 
 ## The four stages
 
@@ -154,9 +136,7 @@ on them, and do not invent product guidance just to close a gap.
 
 ### Not applicable in the lab
 
-Some settings cannot be practiced with the lab accounts. For example, the test
-accounts have one user and are pre-configured, so participants cannot attach an
-Azure subscription or really manage access. That is fine.
+Resource and permission limitations depend on the participant's test environment. Do not carry assumptions from the original event accounts into participant content.
 
 - Mark such a row by starting its `notes` cell in the CSV with
   `Not applicable in the lab:` followed by a short reason. Keep the rest of the
@@ -168,9 +148,7 @@ Azure subscription or really manage access. That is fine.
   assign or remove licenses for another person. If a production design depends
   on those actions, use only a brief hint to apply the design in the production
   instance.
-- The Azure subscription is already connected and cannot be changed or
-  supplemented. Do not include steps to alter its connection or add a
-  subscription.
+- Keep existing payment connections unchanged during this walkthrough.
 - Only flag a row when the lab limitation is clear. Ask or record an open
   question when it is not.
 
@@ -231,7 +209,7 @@ Navigate to your **[Enterprise Settings -> AI controls -> Copilot -> Features & 
 
 - If the URL only reaches part of the path, link just that prefix: `**[Enterprise Settings -> AI controls](…) -> Agent sessions -> View all**`.
 - Use the `{{enterprise.slug}}` or `{{organization.slug}}` placeholders, never a real slug such as `octodemo`. Add the fallback `https://github.com/settings/enterprises` or `https://github.com/settings/organizations`.
-- Repository Settings links use `https://github.com/{{organization.slug}}/{{repository.name}}/settings` with the organization fallback. The profile repository defaults to `pets-workshop`. Link only the Settings prefix unless an authoritative deeper URL exists; explicitly named shared repositories such as `.github-private` stay literal.
+- Repository Settings links use `https://github.com/{{organization.slug}}/{{repository.name}}/settings` with the organization fallback. The repository must be configured; there is no default sample repository. Link only the Settings prefix unless an authoritative deeper URL exists; explicitly named shared repositories such as `.github-private` stay literal.
 
 When you add or change a navigation path, link it only when the author supplies the URL or an opened official doc states that exact page URL. If a URL contains a real slug, put `{{enterprise.slug}}` after `/enterprises/`, and `{{organization.slug}}` after `/orgs/` or `/organizations/` or as the owner of an organization-owned repository URL. If you cannot resolve the URL, leave the path unlinked and mention it in your summary.
 
@@ -297,7 +275,7 @@ templated endpoints, and dynamic URLs are not general authoring mechanisms. The 
 
 ## Safety and approval
 
-Participants do not need facilitator approval or confirmation for actions in their assigned test environment. This lab is for trying settings and observing their effects. Do not add "check with the facilitator" steps, facilitator-approved amounts, or similar gates. Keep explicit reference-only boundaries, such as the provided Azure subscription, and distinguish test actions from production changes.
+Participants need authorization for their chosen targets, scope, and consequences. Do not assume facilitator-provided resources or add facilitator-specific gates. Keep reference-only boundaries and distinguish test actions from production changes.
 
 Participant walkthroughs are not authorization for an agent to execute changes. Agents performing consequential writes need explicit
 confirmation of the exact target, scope, and consequences. Never store
