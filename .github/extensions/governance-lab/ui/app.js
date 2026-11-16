@@ -818,9 +818,11 @@ function renderDetected(name, result, kind) {
   const select = profileHost.querySelector(`#${input.id}-choice`);
   const manual = select.value === ":other:";
   const saved = input.value && !result.items.some((item) => item.slug === input.value) ? [{ slug: input.value, name: input.value }] : [];
-  select.innerHTML = `<option value="">Choose ${kind === "enterprises" ? "enterprise" : "organization"}…</option>
-    ${[...saved, ...result.items].map((item) => `<option value="${html(item.slug)}">${html(item.name === item.slug ? item.slug : `${item.name} (${item.slug})`)}</option>`).join("")}
-    <option value=":other:">Other…</option>`;
+  select.replaceChildren(
+    new Option(`Choose ${kind === "enterprises" ? "enterprise" : "organization"}…`, ""),
+    ...[...saved, ...result.items].map((item) => new Option(item.name === item.slug ? item.slug : `${item.name} (${item.slug})`, item.slug)),
+    new Option("Other…", ":other:"),
+  );
   select.value = manual ? ":other:" : input.value;
   container.innerHTML = `<p class="profile-detected-note">${result.items.length ? `${result.items.length} detected. Choose Other… if your target is not listed.` : `No ${kind} found for this GitHub CLI account. Choose Other… to enter one manually.`}</p>`;
 }
