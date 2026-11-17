@@ -331,7 +331,7 @@ Prose supports paragraphs, emphasis, inline code, ordered/unordered lists,
 blockquotes, pipe tables, `***` thematic breaks, fenced examples (backticks or
 tildes, at least three), and inline `[label](https://...)` / `[label](#anchor)`
 links. Link URLs may use the known `{{enterprise.slug}}` and
-`{{organization.slug}}` and `{{repository.name}}` placeholders in link destinations. The repository name defaults to `pets-workshop` when absent from older profiles; an explicitly blank or invalid name uses the link fallback. An optional Markdown title of the form
+`{{organization.slug}}` and `{{repository.name}}` placeholders in link destinations. An absent, blank, or invalid repository name uses the link fallback; there is no sample-repository default. An optional Markdown title of the form
 `"fallback=https://example.test/generic"` supplies a static HTTPS link to use
 when a profile value is blank or invalid. Without a fallback, the link label is
 rendered without an active link. `example.test` is synthetic and does not
@@ -519,7 +519,7 @@ records are keyed by stable exercise ID, with `mode`, `settingsUrl`,
 `enterpriseSlug` and `organizationSlug` strings; both are blank by default,
 validated as bounded path-segment identifiers, and are not checked against
 GitHub. The canvas uses them only to personalize authored content links and explicitly marked shell commands.
-The optional `repositoryName` string personalizes links only, permits 1–100 letters, digits, dots, underscores and hyphens except `.` and `..`, and defaults to `pets-workshop` when absent. Blank names use authored fallbacks. Older two-field profiles remain valid and need no disk rewrite; saves omitting the repository field preserve an existing name. Credentials and local filesystem paths are not part of this profile.
+The optional `repositoryName` string personalizes links and explicitly marked commands, and permits 1–100 letters, digits, dots, underscores and hyphens except `.` and `..`. It has no default. Absent or blank names use authored link fallbacks and prevent repository-based command execution. Older two-field profiles remain valid and need no disk rewrite; saves omitting the repository field preserve an existing name. Credentials and local filesystem paths are not part of this profile.
 `fields` is configuration input; `evidenceFields` is validation input. `schema`
 is an identity/shape snapshot used to reject corrupt records and safely retain
 removed content. `basis` ties evidence to the current source and relevant

@@ -12,7 +12,7 @@ test("Billing decisions select targeted Verify exercises without creating comple
   const h = await harness(t);
   assert.deepEqual(path.decisions.map((item) => item.id), ["BC-01", "BC-02", "BC-03", "BC-04", "BC-05", "BC-06", "BC-07", "BC-08", "BC-09", "BC-10"]);
   assert.ok(!path.decisions.some((item) => item.id === "BC-13"));
-  assert.match(path.sourceText, /Your sandbox already has an Azure subscription, so you will not set up a payment method here/);
+  assert.match(path.sourceText, /Payment setup is outside this walkthrough\. Leave existing payment connections unchanged/);
   const exercises = path.recipes.filter((recipe) => recipe.kind === "exercise");
   assert.equal(exercises.length, 6);
   assert.deepEqual(path.validations.map((validation) => validation.exerciseId), exercises.map((recipe) => recipe.exerciseId));
@@ -95,8 +95,9 @@ test("API reporting separates CSV downloads from budget queries and includes aut
   assert.match(reporting, /\*\*Download a CSV usage report\*\*/);
   assert.match(reporting, /2\. Add the enterprise billing scope/);
   assert.match(reporting, /gh auth refresh --scopes manage_billing:enterprise/);
-  assert.match(reporting, /START_DATE='2026-10-01'\n   END_DATE='2026-10-31'/);
-  assert.match(reporting, /October 2026/);
+  assert.match(reporting, /START_DATE=\{\{input.start-date\}\}\n   END_DATE=\{\{input.end-date\}\}/);
+  assert.match(reporting, /\$START_DATE=\{\{input.start-date\}\}\n   \$END_DATE=\{\{input.end-date\}\}/);
+  assert.match(reporting, /dates in `YYYY-MM-DD` format/);
   assert.match(reporting, /If you selected \*\*By individual user\*\* in \*\*Cross-charging: Allocation level\*\*, use these per-user rows; this path does not require a cost center/);
   assert.match(reporting, /If you selected a group allocation and created a cost center, use the \[detailed usage report\].*filter by its `cost_center_name`; that field is not included in the AI usage report/);
   assert.match(reporting, /\*\*Query budget status\*\*\n\n1\. In the same terminal/);
@@ -122,7 +123,7 @@ test("Billing validation invites safe budget experiments and explains how to res
   const validation = path.sourceText.split("## Validation\n")[1];
   assert.match(validation, /temporarily set it to \*\*\$0\*\*/i);
   assert.match(validation, /enterprise spending controls apply to metered spending after the shared pool is exhausted/i);
-  assert.match(validation, /alerts are usually sent by email/i);
+  assert.match(validation, /If you cannot access the alert recipient's mailbox, leave email delivery unverified/);
   assert.match(validation, /move your user into and out of the cost center/);
   assert.match(validation, /temporarily set your own individual ULB to \*\*\$0\*\*/);
   for (const exercise of path.validations) {
@@ -180,12 +181,12 @@ test("code-review answer variants keep configuration and validation on the selec
   }
 });
 
-test("Billing wording completes the central Azure path without changing reporting dates", () => {
+test("Billing wording completes the central Azure path with a participant-selected reporting period", () => {
   const reporting = path.decisions.find(({ id }) => id === "BC-02").options.find(({ id }) => id === "reporting");
   assert.match(reporting.markdown, /Use reports to allocate costs internally while payment remains on a central Azure subscription\./);
   assert.match(path.sourceText, /Each budget comes with a dollar amount/);
   assert.match(path.decisions.find(({ id }) => id === "BC-04").guidance, /Agree on the amount/);
-  assert.match(path.sourceText, /START_DATE='2026-10-01'\n   END_DATE='2026-10-31'/);
+  assert.match(path.sourceText, /START_DATE=\{\{input.start-date\}\}\n   END_DATE=\{\{input.end-date\}\}/);
 });
 
 test("changed BC-09 exercise fingerprints archive earlier evidence and Done markers", async (t) => {

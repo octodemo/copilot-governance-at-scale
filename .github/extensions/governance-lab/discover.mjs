@@ -1,5 +1,5 @@
 import { execFile } from "node:child_process";
-import { DEFAULT_REPOSITORY_NAME, validRepositoryName } from "../../../lib/workshop-resolver.mjs";
+import { validRepositoryName } from "../../../lib/workshop-resolver.mjs";
 
 // Read-only GitHub CLI discovery of profile candidates. Arguments are fixed;
 // participant input never reaches the command line, and results are not stored.
@@ -8,10 +8,13 @@ const MAX_ITEMS = 500;
 const ENTERPRISES_QUERY = `query($endCursor: String) {
   viewer { enterprises(first: 100, after: $endCursor) { nodes { slug name } pageInfo { hasNextPage endCursor } } }
 }`;
+// https://docs.github.com/en/graphql/reference/enterprise-admin#enterprise
+const ORGANIZATIONS_QUERY = `query($slug: String!, $endCursor: String) {
+  enterprise(slug: $slug) { organizations(first: 100, after: $endCursor) { nodes { login name } pageInfo { hasNextPage endCursor } } }
+}`;
 
 const ENV_TOKENS = ["GH_TOKEN", "GITHUB_TOKEN"];
 const LOGIN = /^[A-Za-z0-9](?:[A-Za-z0-9_-]{0,98}[A-Za-z0-9])?$/;
-const LAB_PREFIX = "ghuniverse1874-";
 
 const HOST = "github.com";
 // Enterprise and organization administration scopes requested at sign-in.
@@ -26,6 +29,7 @@ export const GH_COMMANDS = Object.freeze({
 
 // Only called with a slug that already matched SLUG; execFile passes it as one argument.
 const repositoriesCommand = (organization) => ["api", `orgs/${organization}/repos?per_page=100`, "--paginate", "--slurp"];
+const organizationsCommand = (enterprise) => ["api", "graphql", "--paginate", "--slurp", "-f", `query=${ORGANIZATIONS_QUERY}`, "-f", `slug=${enterprise}`];
 
 // Fixed sign-in commands opened in the visible workshop terminal after an explicit
 // click. GH_TOKEN/GITHUB_TOKEN are cleared for the command only, because gh
@@ -108,7 +112,13 @@ async function discoverWith(run, source, automatic) {
       (stdout) => ({ items: candidates(pages(stdout).flat(), "login") }),
       (error) => ({ items: [], error: failure(error, "organizations", source) }))),
     settle(run([...GH_COMMANDS.enterprises], options).then(
-      (stdout) => ({ items: candidates(pages(stdout).flatMap((page) => page?.data?.viewer?.enterprises?.nodes ?? []), "slug") }),
+      (stdout) => {
+        const results = pages(stdout);
+        if (!results.length || results.some((page) => page?.errors?.length || !Array.isArray(page?.data?.viewer?.enterprises?.nodes))) {
+          return { items: [], error: INVALID };
+        }
+        return { items: candidates(results.flatMap((page) => page.data.viewer.enterprises.nodes), "slug") };
+      },
       (error) => ({ items: [], error: failure(error, "enterprises", source) }))),
   ]);
   return { account: typeof account === "string" ? account : null, source, organizations, enterprises,
@@ -120,17 +130,31 @@ export async function discoverAccounts({ run = runGh, env = process.env, automat
   if (result.unauthenticated && hasEnvToken(env)) result = await discoverWith(run, "environment", automatic);
   if (automatic) {
     if (result.enterprises.error) return { profile: null, error: result.enterprises.error };
-    const matches = result.enterprises.items.filter(({ slug }) => isLabSlug(slug));
+    const matches = result.enterprises.items;
     if (matches.length !== 1) return { profile: null, error: {
       code: matches.length ? "ambiguous" : "not-found",
-      message: matches.length ? `Multiple enterprises match ${LAB_PREFIX}. Choose your lab enterprise manually.` :
-        `No enterprise matching ${LAB_PREFIX} was found for this GitHub CLI account.`,
+      message: matches.length ? "Multiple enterprises were found. Choose your enterprise and organization in the profile." :
+        "No enterprise was found for this GitHub CLI account. Configure the profile manually or use a different account.",
     } };
     const enterpriseSlug = matches[0].slug;
     const options = { useEnvToken: result.source === "environment" };
     const notices = [];
-    // Lab organizations share their enterprise's slug, so automatic detection does not list organizations.
-    const organizationSlug = enterpriseSlug;
+    let organizations;
+    try {
+      const results = pages(await run(organizationsCommand(enterpriseSlug), options));
+      if (!results.length || results.some((page) => page?.errors?.length || !Array.isArray(page?.data?.enterprise?.organizations?.nodes))) {
+        return { profile: null, error: INVALID };
+      }
+      organizations = candidates(results.flatMap((page) => page.data.enterprise.organizations.nodes), "login");
+    } catch (error) {
+      return { profile: null, error: error instanceof SyntaxError ? INVALID : failure(error, "enterprise organizations", result.source) };
+    }
+    if (organizations.length !== 1) return { profile: null, error: {
+      code: organizations.length ? "ambiguous" : "not-found",
+      message: organizations.length ? "The enterprise has multiple organizations. Choose your enterprise and organization in the profile." :
+        "No organization was found in the enterprise. Configure the profile manually or use a different account.",
+    } };
+    const organizationSlug = organizations[0].slug;
     const repositoryName = await detectRepository(run, options, organizationSlug, notices);
     return { profile: { enterpriseSlug, organizationSlug, ...(repositoryName ? { repositoryName } : {}) }, notices };
   }
@@ -138,10 +162,7 @@ export async function discoverAccounts({ run = runGh, env = process.env, automat
   return output;
 }
 
-const isLabSlug = (slug) => slug.toLowerCase().startsWith(LAB_PREFIX) && slug.length > LAB_PREFIX.length;
-
-// Returns a repository only when the organization contains the workshop default
-// or exactly one repository; otherwise the profile keeps its current value.
+// Never favor a particular sample repository or guess among multiple targets.
 async function detectRepository(run, options, organization, notices) {
   let names;
   try {
@@ -151,10 +172,8 @@ async function detectRepository(run, options, organization, notices) {
     notices.push(`Repositories in ${organization} could not be listed. Check the repository in the profile.`);
     return null;
   }
-  const preferred = names.find((name) => name.toLowerCase() === DEFAULT_REPOSITORY_NAME.toLowerCase());
-  if (preferred) return preferred;
   if (names.length === 1) return names[0];
-  notices.push(names.length ? `${organization} has several repositories and none is named ${DEFAULT_REPOSITORY_NAME}. Choose the repository in the profile.` :
+  notices.push(names.length ? `${organization} has several repositories. Choose the repository in the profile.` :
     `${organization} has no repositories visible to this account. Check the repository in the profile.`);
   return null;
 }

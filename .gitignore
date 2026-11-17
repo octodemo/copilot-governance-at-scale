@@ -6,3 +6,4 @@ playwright-report/
 governance-workshop.json
 governance-workshop-exports/
 .DS_Store
+/.impeccable/hook.cache.json

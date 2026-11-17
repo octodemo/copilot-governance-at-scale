@@ -38,7 +38,7 @@ test("Observability restores the metrics and OTel decisions with distinct Config
     else assert.match(variant.sections.Steps, /Leave the streaming settings unchanged/);
     assert.doesNotMatch(variant.sections.Steps, /whether a stream is already configured|existing stream configuration/i);
   }
-  assert.match(auditRecipe.sections.Safety, /This is for showcase purposes only/);
+  assert.match(auditRecipe.sections.Safety, /Inspect the available options without changing a stream/);
   assert.ok(resolveConfiguration(path, { "OB-01": "github-history" }).exercises.some((item) => item.recipe.exerciseId === "OB-AUDIT"));
   assert.ok(resolveConfiguration(path, {}).exercises.length === 0);
   assert.equal(Object.hasOwn(auditRecipe, "exerciseKind"), false);
@@ -204,7 +204,7 @@ test("Observability review edits keep minimal capture and remove redundant instr
   for (const [answer, identity] of [["minimal-telemetry", false], ["identity-telemetry", true]]) {
     const { guidance } = resolveConfiguration(path, { "OB-06": answer });
     const minimal = guidance[0].recipe;
-    assert.match(minimal.markdown, /This is for showcase purposes only/);
+    assert.match(minimal.markdown, /This example is for review only/);
     assert.match(minimal.sections.Steps, /not whether traces, metrics, and events are collected/);
     for (const [index, { recipe }] of guidance.entries()) {
       const json = recipe.sections.Steps.match(/   ```json\n([\s\S]*?)\n   ```/)[1];
@@ -268,7 +268,7 @@ test("verification distinguishes each dashboard, API scope and audit decision wi
     for (const suffix of ["/impact", "", "/code-generation"]) {
       assert.ok(steps.includes(`https://github.com/enterprises/{{enterprise.slug}}/insights/copilot${suffix} "fallback=`));
     }
-    assert.match(steps, /You will not see usage data in this sandbox/);
+    assert.match(steps, /If no usage data is available/);
     assert.match(steps, /Reload the three dashboards and compare/);
     assert.match(steps, /^1\. Open each dashboard/);
     assert.doesNotMatch(steps, /You can find|Remember:/);
@@ -300,7 +300,7 @@ test("verification distinguishes each dashboard, API scope and audit decision wi
   for (const answer of ["github-history", "periodic-export", "external-stream"]) {
     const audit = validationFor("OB-01", answer);
     assert.match(audit.sections.Steps, /> \[!TIP\]\n> If you do not see Copilot activity/);
-    assert.match(audit.sections.Steps, /your \[Petstore workshop repository\]\(https:\/\/github\.com\/\{\{organization\.slug\}\}\/\{\{repository\.name\}\} "fallback=https:\/\/github\.com\/settings\/organizations"\)/);
+    assert.match(audit.sections.Steps, /your \[test repository\]\(https:\/\/github\.com\/\{\{organization\.slug\}\}\/\{\{repository\.name\}\} "fallback=https:\/\/github\.com\/settings\/organizations"\)/);
     assert.match(audit.sections.Steps, /Copilot cloud agent session/);
     assert.doesNotMatch(audit.sections.Steps, /Do not create an agent run just to populate the audit log/);
   }
@@ -314,7 +314,7 @@ test("verification distinguishes each dashboard, API scope and audit decision wi
   assert.match(auditExport.sections.Steps, /phrase='action:copilot'/);
   assert.match(auditExport.sections.Steps, /phrase='actor:Copilot'/);
   assert.doesNotMatch(validationFor("OB-01", "github-history").sections.Steps, /gh api/);
-  assert.match(validationFor("OB-01", "external-stream").sections["Expected result"], /External delivery and retention remain unverified/);
+  assert.match(validationFor("OB-01", "external-stream").sections["Expected result"], /does not verify external delivery or retention/);
   assert.match(validationFor("OB-01", "external-stream").sections.Steps, /navigate to your \*\*\[Enterprise Settings -> Settings -> Audit log\]\([^)]*\)\*\* and explore the available streaming options/i);
   assert.doesNotMatch(validationFor("OB-01", "external-stream").sections.Steps, /check that it remains unchanged|review the streaming section/i);
   for (const recipe of path.recipes) {

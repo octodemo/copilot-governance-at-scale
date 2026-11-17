@@ -52,7 +52,7 @@ Follow **Understand -> Decide -> Configure -> Verify**. Start with the need, cho
 
 ## Decisions
 
-Answer for your enterprise's needs. In Configure, apply the scope choice only to your assigned test resources.
+Answer for your enterprise's needs. In Configure, apply the scope choice only to your authorized test resources.
 
 ### Decision: AG-01
 **Title:** Agent operating scope
@@ -311,7 +311,7 @@ Enterprise owner or AI manager; organization owner for repository access
 1. Navigate to your **[Enterprise Settings -> AI controls -> Agents -> Copilot Cloud Agent](https://github.com/enterprises/{{enterprise.slug}}/ai-controls/agents/policies "fallback=https://github.com/settings/enterprises")**.
 2. Record the original policy. In an isolated enterprise where all organizations are assigned to you, enable cloud agent for all organizations. If the enterprise is shared, inspect the existing policy without expanding it and record that limitation.
 3. Navigate to your **[Organization Settings -> Copilot -> Cloud agent](https://github.com/organizations/{{organization.slug}}/settings/copilot/coding_agent "fallback=https://github.com/settings/organizations") -> Repository access**. Inspect whether your assigned repository is allowed. Broader enterprise availability does not require removing repository restrictions.
-4. Reopen the enterprise policy and confirm its value. Validation samples your assigned repository; it does not prove availability in every organization.
+4. Reopen the enterprise policy and confirm its value. Validation samples your test repository; it does not prove availability in every organization.
 
 #### Variant: disabled
 
@@ -457,7 +457,7 @@ See [MCP allowlists](https://docs.github.com/en/enterprise-cloud@latest/copilot/
 **Catalog IDs:** agents-context.tool-permissions, extensions-plugins.managed-settings
 **Requires decisions:** AG-05
 
-Prepare a proposed rule list. Do not change the permissions of the client running this workshop.
+Prepare a proposed rule list. Do not change the permissions of the client running this lab.
 
 #### Steps
 
@@ -595,7 +595,7 @@ See [plugin standards](https://docs.github.com/en/enterprise-cloud@latest/copilo
 **Catalog IDs:** agents-context.sandbox, extensions-plugins.managed-settings
 **Requires decisions:** AG-05
 
-Do not alter the sandbox of the running workshop client.
+Do not alter the sandbox of the running lab client.
 
 #### Steps
 

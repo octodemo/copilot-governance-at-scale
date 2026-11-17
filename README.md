@@ -1,12 +1,12 @@
 # GitHub Copilot at scale: An interactive lab for enterprise admins
 
-[GitHub Universe 2026 session](https://reg.githubuniverse.com/flow/github/universe26/attendee-portal/page/sessioncatalog/session/1788880889921001wVyZ)
+Originally delivered as a [GitHub Universe 2026 workshop](https://reg.githubuniverse.com/flow/github/universe26/attendee-portal/page/sessioncatalog/session/1788880889921001wVyZ), this lab can be used independently with your own authorized test environment.
 
 [![Open in the GitHub Copilot app](https://img.shields.io/badge/Quickstart-Open%20in%20GitHub%20Copilot%20app-8957e5?style=for-the-badge&logo=githubcopilot&logoColor=white)](https://github.com/copilot/app/launch?open=ghapp%3A%2F%2Fgithub.com%2Foctodemo%2Fcopilot-governance-at-scale)
 
 *(The badge uses a* [*GitHub Copilot app deep link*](https://docs.github.com/en/copilot/how-tos/github-copilot-app/open-with-deep-links#available-app-links) *to open this repository. See the* [*app quickstart*](https://docs.github.com/en/copilot/get-started/quickstart-copilot-app) *for setup.)*
 
-### Session description
+### About the lab
 
 Explore the decisions behind deploying GitHub Copilot at enterprise scale.
 Use an interactive workshop canvas in the GitHub Copilot app to work through
@@ -44,6 +44,12 @@ You can explore the six blocks independently; there is no fixed exercise count.
 Without sandbox access, use the material for discussion and planning without
 claiming live configuration or validation.
 
+### Configure your targets
+
+The canvas does not provision accounts or assume a particular enterprise or organization name. Automatic discovery selects a profile only when it finds one enterprise and one organization belonging to it. Multiple matches require a choice through **Configure enterprise profile**, which also supports manual entry. A repository is detected only when the organization has exactly one visible repository; otherwise enter its name yourself. There is no sample-repository default. Existing saved profiles are retained.
+
+Bring the permissions and test resources required by your chosen exercises. No accounts, payment connections, managed-settings repositories, telemetry backends, or usage data are supplied. Review the affected users and costs before making changes.
+
 ### 🎯 Learning outcomes
 
 By the end of this session, you will be able to:
@@ -70,7 +76,7 @@ By the end of this session, you will be able to:
 
 - [GitHub Copilot app](https://docs.github.com/en/copilot/get-started/quickstart-copilot-app)
 - [Canvas extensions](https://docs.github.com/en/copilot/how-tos/github-copilot-app/working-with-canvas-extensions),
-  including this repository's **Copilot Governance Workshop** (`governance-lab`)
+  including this repository's **Copilot Governance Lab** (`governance-lab`)
 - [GitHub Copilot enterprise administration](https://docs.github.com/en/copilot/how-tos/administer-copilot/manage-for-enterprise)
 - Markdown and JSON for take-home decision records
 

@@ -12,7 +12,7 @@ Billing and budget controls can be confusing, especially with GitHub's Usage Bas
 If you’re already familiar with Copilot billing and controls, you can go straight to the decisions. Otherwise, read on for a refresher on how Copilot billing works and an overview of the available billing and budgeting options.
 
 > [!NOTE]
-> **Payment setup:** Your sandbox already has an Azure subscription, so you will not set up a payment method here. See GitHub's [supported payment methods](https://docs.github.com/en/enterprise-cloud@latest/billing/reference/supported-payment-methods) for an overview.
+> **Payment setup:** Payment setup is outside this walkthrough. Leave existing payment connections unchanged. See GitHub's [supported payment methods](https://docs.github.com/en/enterprise-cloud@latest/billing/reference/supported-payment-methods) for an overview.
 
 ### How Copilot is billed
 
@@ -20,15 +20,11 @@ Copilot requests that use AI models consume `AI credits`, where 1 AI credit equa
 
 
 > [!NOTE]
-> **Updated license model:** Previously, Copilot Business cost $19 USD and Copilot Enterprise cost $39 USD per seat per month. Each seat comes with included AI credits pooled across the enterprise.
+> **Billing models:** Copilot Business and Copilot Enterprise include AI credits pooled across the organization or enterprise.
 >
-> This Universe 26, we announced a new and simpler model: Copilot can now be bundled directly with your GitHub Enterprise licenses, removing any additional Copilot license cost, but also removing the pooling model entirely. This simplifies budgets and spending controls significantly. **Recommended —** We recommend switching to the new model as soon as it is available to you.
->
-> `Copilot only` seats can still be acquired in the new model at $10 per user per month, but they do not include any AI credit allowance. AI credit usage is billed separately.
->
-> Existing Copilot customers can choose to remain on the old model or switch to the new one. New Copilot customers automatically receive the new model.
+> Copilot access through GitHub Enterprise Cloud or Copilot Standalone has no included allowance. Metered usage is billed from the first use. Check your account's billing model before choosing controls.
 
-The pooled-credit explanations below apply to accounts retaining pooled credits, not to the announced non-pooled model.
+The pooled-credit explanations below apply only to accounts with pooled credits.
 
 See GitHub’s [AI credit documentation](https://docs.github.com/en/enterprise-cloud@latest/copilot/concepts/billing-and-usage/organizations-and-enterprises/billing) and [models and pricing guide](https://docs.github.com/en/enterprise-cloud@latest/copilot/reference/copilot-billing/models-and-pricing) for more information about Copilot billing.
 
@@ -90,7 +86,7 @@ Use these views and APIs to review spending and budget status. They do not inclu
 
 ## Decisions
 
-Answer with your production enterprise in mind. Some settings cannot be practiced in this sandbox.
+Answer with your enterprise in mind. Practice changes only in an authorized test environment.
 
 ### Decision: BC-01
 **Title:** Billing responsibility
@@ -460,7 +456,7 @@ Keep users' individual Copilot views without adding central reporting.
 
 In your sandbox enterprise, create cost centers and budgets, then try the settings. Choose your budget amounts, including zero to explore blocking usage. If a control is unavailable, record that limitation.
 
-Your sandbox already has an Azure subscription. Leave its connection unchanged.
+Use an authorized test enterprise and confirm who else could be affected before changing a budget. Leave existing payment connections unchanged.
 
 ### Recipe: bc-billing-managers
 **Title:** Review the enterprise billing manager setting
@@ -469,7 +465,7 @@ Your sandbox already has an Azure subscription. Leave its connection unchanged.
 **Catalog IDs:** billing.billing-managers
 
 > [!WARNING]
-> Review the setting without changing your role or inviting anyone. Your sandbox account already has enterprise administrator access.
+> Review the setting without changing your role or inviting anyone.
 
 #### Steps
 
@@ -489,7 +485,7 @@ Your sandbox already has an Azure subscription. Leave its connection unchanged.
 
 #### Safety
 
-Preserve the original membership and leave the provided Azure subscription unchanged.
+Preserve the original membership and leave existing payment connections unchanged.
 
 #### Steps
 
@@ -509,7 +505,7 @@ Preserve the original membership and leave the provided Azure subscription uncha
 > [!NOTE]
 > Use this guidance if you selected **Separate Azure subscriptions by cost center** in **Cross-payment: Azure subscriptions**. For a central subscription, use the reporting guidance for internal allocation.
 
-Your sandbox already has an Azure subscription. These steps are for production payment routing; use **Cross-charging: Allocation level** to plan internal allocation.
+Payment-routing changes are reference-only in this walkthrough. Leave existing subscriptions unchanged; use **Cross-charging: Allocation level** to plan internal allocation.
 
 #### Steps
 
@@ -565,7 +561,7 @@ Record the original amount, stop and alert settings before changing them, and ke
 
 #### Safety
 
-A universal ULB can affect every licensed user. In your sandbox, you are the only user. Keep billing settings open in a separate browser tab before testing a block.
+A universal ULB can affect every licensed user. Test it only in an authorized test enterprise where interrupting other users is acceptable. Keep billing settings open in a separate browser tab before testing a block.
 
 #### Steps
 
@@ -718,7 +714,7 @@ Use a test repository and pull request in your sandbox organization. Reviews can
 #### Steps
 
 > [!WARNING]
-> Usage data may be empty because these are test accounts.
+> Usage data may be empty in a test environment. An empty report is not evidence of zero production cost.
 
 **Download a CSV usage report**
 
@@ -729,11 +725,11 @@ Use a test repository and pull request in your sandbox organization. Reviews can
    gh auth refresh --scopes manage_billing:enterprise
    ```
 
-3. Request an `AI usage report` for October 2026. This command uses the enterprise saved in your workshop profile. The API requires `start_date`; the end date is set explicitly here.
+3. Request an `AI usage report` for your chosen reporting period. Enter the start and end dates in `YYYY-MM-DD` format. This command uses the enterprise saved in your profile.
 
    ```sh profile
-   START_DATE='2026-10-01'
-   END_DATE='2026-10-31'
+   START_DATE={{input.start-date}}
+   END_DATE={{input.end-date}}
 
    gh api --method POST \
      -H 'X-GitHub-Api-Version: 2026-03-10' \
@@ -744,8 +740,8 @@ Use a test repository and pull request in your sandbox organization. Reviews can
    ```
 
    ```powershell profile
-   $START_DATE='2026-10-01'
-   $END_DATE='2026-10-31'
+   $START_DATE={{input.start-date}}
+   $END_DATE={{input.end-date}}
 
    gh api --method POST -H 'X-GitHub-Api-Version: 2026-03-10' "/enterprises/{{enterprise.slug}}/settings/billing/reports" -f report_type=ai_credit -f start_date="$START_DATE" -f end_date="$END_DATE"
    ```
@@ -787,7 +783,7 @@ Use a test repository and pull request in your sandbox organization. Reviews can
 
 **Query budget status**
 
-1. In the same terminal, query the budgets API to find budgets you created earlier. This command uses the enterprise saved in your workshop profile. Inspect `id`, `budget_scope`, `budget_entity_name`, `budget_amount`, `consumed_amount`, and `prevent_further_usage`. If `has_next_page` is true, increase `page` and repeat until you find your budgets.
+1. In the same terminal, query the budgets API to find budgets you created earlier. This command uses the enterprise saved in your profile. Inspect `id`, `budget_scope`, `budget_entity_name`, `budget_amount`, `consumed_amount`, and `prevent_further_usage`. If `has_next_page` is true, increase `page` and repeat until you find your budgets.
 
    ```sh profile
    gh api --method GET \
@@ -869,7 +865,7 @@ See [cost-center allocation and membership changes](https://docs.github.com/en/e
 #### Steps
 
 1. Navigate to your **[Enterprise Settings -> Billing and licensing -> Budgets and alerts](https://github.com/enterprises/{{enterprise.slug}}/billing/budgets "fallback=https://github.com/settings/enterprises")** and find the enterprise budget you created. Record its original amount, `Stop usage when budget limit is reached`, and `Receive budget threshold alerts` settings.
-2. Temporarily set the enterprise budget to **$0**, enable `Stop usage when budget limit is reached`, and save. This can affect every user in the enterprise. In your sandbox, you are the only user.
+2. Temporarily set the enterprise budget to **$0**, enable `Stop usage when budget limit is reached`, and save. This can affect every user in the enterprise. Proceed only in an authorized test enterprise where interrupting those users is acceptable.
 3. Try one small Copilot request in this app and observe whether it is blocked. Check whether included credits remain and whether an exhausted ULB or another budget could explain the result. Do not deliberately exhaust the shared pool.
 4. Inspect the monitoring-only alternative by clearing `Stop usage when budget limit is reached` and reviewing the alert setting. Do not submit another request while the stop is disabled: this setting allows charges beyond the budget.
 5. Restore the original amount, stop behavior, and alert settings in your browser before continuing.
@@ -879,7 +875,7 @@ See [cost-center allocation and membership changes](https://docs.github.com/en/e
 You can distinguish a spending stop from an alert-only budget. In the pooled model, enterprise spending controls apply to metered spending after the shared pool is exhausted; a request served from remaining included credits does not validate a metered-spending stop. If you cannot isolate this budget from other controls, record the outcome as inconclusive.
 
 > [!NOTE]
-> Alerts are usually sent by email. The lab accounts cannot access those messages, so email delivery cannot be verified here.
+> If you cannot access the alert recipient's mailbox, leave email delivery unverified.
 
 See [budget behavior](https://docs.github.com/en/enterprise-cloud@latest/copilot/concepts/billing-and-usage/organizations-and-enterprises/budgets) and [editing budgets and alerts](https://docs.github.com/en/enterprise-cloud@latest/billing/how-tos/set-up-budgets).
 
@@ -925,7 +921,7 @@ See [ULB precedence](https://docs.github.com/en/enterprise-cloud@latest/copilot/
 2. Check that your user is covered. For a cost-center budget, inspect effective cost-center membership. For an organization budget, check which organization provides the Copilot license and whether cost-center attribution takes precedence.
 3. Record the selected budget's amount, stop and alert settings, and your user's effective ULB. Leave the ULB unchanged. If it is already zero or exhausted, it can mask the group-budget test; inspect the settings instead of trying requests or raising that limit.
 4. If the ULB is not already blocking, temporarily set the selected spending budget to **$0**, enable `Stop usage when budget limit is reached`, and save. Try one small Copilot request in this app and observe the result.
-5. Inspect the monitoring-only alternative and `Receive budget threshold alerts`, without generating usage while the stop is disabled. Email delivery cannot be checked with the lab accounts.
+5. Inspect the monitoring-only alternative and `Receive budget threshold alerts`, without generating usage while the stop is disabled. If you cannot access the alert recipient's mailbox, leave email delivery unverified.
 6. Restore the budget's original amount, stop and alert settings before testing another scope.
 
 #### Expected result

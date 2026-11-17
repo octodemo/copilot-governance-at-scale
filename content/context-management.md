@@ -265,7 +265,7 @@ Assign owners, review dates, validation criteria and retirement steps to shared 
 
 ## Configure
 
-Work only in your Petstore workshop repository. Prepare the shared instructions, then compare the same coding task in Validation. Keep the original task and existing guidance so you can make a fair comparison.
+Work only in your test repository. Prepare the shared instructions, then compare the same coding task in Validation. Keep the original task and existing guidance so you can make a fair comparison.
 
 All instruction choices use the repository comparison exercise. For other walkthroughs, inspect settings and prepare proposals only. Do not change permissions, exclusions, organization policies or Memory; connect MCP servers; upload or share content; or delete stored memories. If a repository, client or setting is unavailable, record that limitation.
 
@@ -279,7 +279,7 @@ All instruction choices use the repository comparison exercise. For other walkth
 **Variant decision:** CM-02
 **Target:** repository
 **Target label:** Confirmed sandbox GitHub repository URL
-**Target help:** Use your Petstore workshop repository's root page URL, not a settings or file URL. The canvas does not inspect repository access.
+**Target help:** Use your test repository's root page URL, not a settings or file URL. The canvas does not inspect repository access.
 **Target link label:** Open confirmed GitHub repository
 **Primary choice label:** engineering-standards
 
@@ -287,11 +287,11 @@ All instruction choices evaluate the shared repository instructions file. The ce
 
 #### Safety
 
-Use your [Petstore workshop repository](https://github.com/{{organization.slug}}/{{repository.name}} "fallback=https://github.com/settings/organizations"). Instructions guide behavior; they do not restrict access. Do not test restrictions with secrets or bypass existing controls.
+Use your [test repository](https://github.com/{{organization.slug}}/{{repository.name}} "fallback=https://github.com/settings/organizations"). Instructions guide behavior; they do not restrict access. Do not test restrictions with secrets or bypass existing controls.
 
 #### Prerequisites
 
-- A local clone of your [Petstore workshop repository](https://github.com/{{organization.slug}}/{{repository.name}} "fallback=https://github.com/settings/organizations") with a clean working tree, and Node.js to run `node --test`.
+- A local clone of your [test repository](https://github.com/{{organization.slug}}/{{repository.name}} "fallback=https://github.com/settings/organizations") with a clean working tree, and Node.js to run `node --test`. Choose a repository where the sample `src/slug.js` task below will not overwrite existing application code.
 - Your sandbox user with permission to edit the sample instructions and access to Copilot Chat in VS Code.
 - Repository instructions enabled in VS Code. In Settings, search for `instruction file` and inspect `Code Generation: Use Instruction Files`.
 - A place to keep the non-sensitive baseline response, generated changes and test result outside the sample repository.
@@ -300,7 +300,7 @@ See [repository instructions in your IDE](https://docs.github.com/en/enterprise-
 
 #### Steps
 
-1. Open your local clone of the Petstore workshop repository in VS Code. Read any existing instructions and keep a copy. Do not remove existing safeguards to create a baseline.
+1. Open your local clone of the test repository in VS Code. Read any existing instructions and keep a copy. Do not remove existing safeguards to create a baseline.
 2. Before editing instructions, submit the following prompt in Copilot Chat. Record the client, mode and selected model so you can use the same setup for the comparison.
 
    ```text
@@ -417,7 +417,7 @@ Inspect access without changing it. For a production review, involve the reposit
 #### Steps
 
 1. List the information the task needs and its classification. For **Broad context within existing access**, retain current permissions rather than adding access. For restricted access, name the approved repositories and data sources.
-2. In your Petstore workshop repository, navigate to **[Repository Settings -> Collaborators & teams](https://github.com/{{organization.slug}}/{{repository.name}}/settings/access "fallback=https://github.com/settings/organizations")**. You own this sandbox organization. If you cannot view access, record the limitation.
+2. In your test repository, navigate to **[Repository Settings -> Collaborators & teams](https://github.com/{{organization.slug}}/{{repository.name}}/settings/access "fallback=https://github.com/settings/organizations")**. You own this sandbox organization. If you cannot view access, record the limitation.
 3. Under `Manage access`, find your user and inspect its role.
 4. If `Mixed roles` appears, inspect the sources of access. Do not assume a single assignment explains the person's permissions.
 5. Prepare a proposal naming who needs access and which roles require review. Do not add or remove people or change roles here.
@@ -599,7 +599,7 @@ See [Spaces availability and source permissions](https://docs.github.com/en/ente
 3. Review eligible users and their opt-out path. Managed subscriptions are off by default until an administrator enables the policy; users with multiple organization licenses need all of those organizations to allow Memory. Leave the policy unchanged.
 4. Review the scopes separately. Repository facts are used only in that repository and checked against cited code. Personal preferences follow the user, and Business/Enterprise preferences are owned by the active billing entity. Memory is not shared organization-wide.
 5. Unused facts and preferences are deleted after 28 days; successful validation and use may reset the timer. Assign review and deletion owners. The retention period is not configurable or an absolute 28-day lifetime.
-6. As a repository administrator, inspect **[Repository Settings -> Copilot -> Memory](https://github.com/{{organization.slug}}/{{repository.name}}/settings/copilot/memory "fallback=https://github.com/settings/organizations")** if available. Identify stale or inappropriate facts without deleting them. Use the [administrator guide](https://docs.github.com/en/enterprise-cloud@latest/copilot/how-tos/use-copilot-agents/copilot-memory/manage-as-administrator) to plan organization/enterprise export and deletion responsibilities for user preferences. Keep personal data out of workshop evidence.
+6. As a repository administrator, inspect **[Repository Settings -> Copilot -> Memory](https://github.com/{{organization.slug}}/{{repository.name}}/settings/copilot/memory "fallback=https://github.com/settings/organizations")** if available. Identify stale or inappropriate facts without deleting them. Use the [administrator guide](https://docs.github.com/en/enterprise-cloud@latest/copilot/how-tos/use-copilot-agents/copilot-memory/manage-as-administrator) to plan organization/enterprise export and deletion responsibilities for user preferences. Keep personal data out of lab evidence.
 7. Define the review process before rollout. This choice does not change Memory modes or retention settings.
 
 Copilot Memory is in public preview. See [Memory behavior and ownership](https://docs.github.com/en/enterprise-cloud@latest/copilot/concepts/prompting-and-context/copilot-memory) and [administrator controls](https://docs.github.com/en/enterprise-cloud@latest/copilot/how-tos/use-copilot-agents/copilot-memory/manage-as-administrator).
@@ -618,7 +618,7 @@ Copilot Memory is in public preview. See [Memory behavior and ownership](https:/
 3. Review eligible users and their opt-out path. Managed subscriptions are off by default until an administrator enables the policy; users with multiple organization licenses need all of those organizations to allow Memory. Leave the policy unchanged.
 4. Review the scopes separately. Repository facts are used only in that repository and checked against cited code. Personal preferences follow the user, and Business/Enterprise preferences are owned by the active billing entity. Memory is not shared organization-wide.
 5. Unused facts and preferences are deleted after 28 days; successful validation and use may reset the timer. Assign review and deletion owners. The retention period is not configurable or an absolute 28-day lifetime.
-6. As a repository administrator, inspect **[Repository Settings -> Copilot -> Memory](https://github.com/{{organization.slug}}/{{repository.name}}/settings/copilot/memory "fallback=https://github.com/settings/organizations")** if available. Identify stale or inappropriate facts without deleting them. Use the [administrator guide](https://docs.github.com/en/enterprise-cloud@latest/copilot/how-tos/use-copilot-agents/copilot-memory/manage-as-administrator) to plan organization/enterprise export and deletion responsibilities for user preferences. Keep personal data out of workshop evidence.
+6. As a repository administrator, inspect **[Repository Settings -> Copilot -> Memory](https://github.com/{{organization.slug}}/{{repository.name}}/settings/copilot/memory "fallback=https://github.com/settings/organizations")** if available. Identify stale or inappropriate facts without deleting them. Use the [administrator guide](https://docs.github.com/en/enterprise-cloud@latest/copilot/how-tos/use-copilot-agents/copilot-memory/manage-as-administrator) to plan organization/enterprise export and deletion responsibilities for user preferences. Keep personal data out of lab evidence.
 7. Include each additional surface and owner in the review process. This choice does not change Memory modes or retention settings.
 
 Copilot Memory is in public preview. See [Memory behavior and ownership](https://docs.github.com/en/enterprise-cloud@latest/copilot/concepts/prompting-and-context/copilot-memory) and [administrator controls](https://docs.github.com/en/enterprise-cloud@latest/copilot/how-tos/use-copilot-agents/copilot-memory/manage-as-administrator).
