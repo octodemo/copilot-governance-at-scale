@@ -114,6 +114,17 @@ test("assignment method selects IdP, manual, or API guidance", async (t) => {
   assert.deepEqual(recipeIds(), ["am-idp-groups", "am-team-assignment"]);
 });
 
+test("inactive-user guidance follows the removal decision", async (t) => {
+  const h = await harness(t);
+  const selected = () => configurationFor(path, h.state().paths[id]).recipes
+    .some(({ recipe }) => recipe.id === "am-inactive-users");
+  assert.equal(selected(), false);
+  for (const [answer, expected] of [["automated", true], ["manual", true], ["keep", false]]) {
+    await h.select(id, "AM-06", answer);
+    assert.equal(selected(), expected, answer);
+  }
+});
+
 test("removing the duplicate decision preserves shifted answers and archives its obsolete answer", async (t) => {
   const previousContent = structuredClone(content);
   const previousAccess = previousContent.paths.find((item) => item.id === id);
