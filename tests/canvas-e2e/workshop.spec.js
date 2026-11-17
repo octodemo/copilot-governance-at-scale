@@ -118,9 +118,9 @@ test("variant exercises render only the selected variant in Configure and Verify
 test("profile commands use saved profile scopes only in Verify", async ({ page }) => {
   await page.goto(entry.url);
   await page.locator("#profile-open").click();
-  await page.getByLabel("Enterprise slug", { exact: true }).fill("Lab-Enterprise");
+  await fillProfileField(page, "Enterprise slug", "Lab-Enterprise");
   await expect.poll(async () => (await disk()).profile.enterpriseSlug).toBe("Lab-Enterprise");
-  await page.getByLabel("Organization slug", { exact: true }).fill("Lab-Org");
+  await fillProfileField(page, "Organization slug", "Lab-Org");
   await expect.poll(async () => (await disk()).profile.organizationSlug).toBe("Lab-Org");
   await page.getByRole("button", { name: "Close enterprise profile" }).click();
   for (const [option, expected] of [["one", "/orgs/Lab-Org/fixture-reports"], ["many", "/enterprises/Lab-Enterprise/fixture-reports"]]) {
@@ -203,6 +203,41 @@ test("block actions use Primer buttons and resume only blocks with a saved answe
   await expect(page.locator("[data-decision-id]")).toBeVisible();
 });
 
+async function fillProfileField(page, label, value) {
+  const choice = { "Enterprise slug": "Enterprise", "Organization slug": "Organization", "Repository name": "Repository" }[label];
+  await page.getByLabel(choice, { exact: true }).selectOption(":other:");
+  await page.getByLabel(label, { exact: true }).fill(value);
+}
+
+test("profile explains target usage and reveals manual fields only through Other", async ({ page }) => {
+  await page.goto(entry.url);
+  await page.getByRole("button", { name: "Configure enterprise profile", exact: true }).click();
+  const panel = page.getByRole("dialog", { name: "Enterprise profile" });
+  await expect(panel).toContainText("This does not change settings or grant access.");
+  await expect(panel).toContainText("Used for enterprise-wide policy, billing, and reporting links and commands.");
+  await expect(panel).toContainText("Used for organization settings and organization-scoped commands.");
+  await expect(panel).toContainText("Combined with the organization above for repository links and commands.");
+  await expect(panel.getByRole("link", { name: "github-samples/copilot-workshops (new tab)", exact: true })).toHaveAttribute("href", "https://github.com/github-samples/copilot-workshops");
+  await expect(page.getByLabel("Repository name", { exact: true })).toBeHidden();
+  await fillProfileField(page, "Repository name", "__other__");
+  await expect.poll(async () => (await disk()).profile.repositoryName).toBe("__other__");
+  await page.keyboard.press("Escape");
+  await page.getByRole("button", { name: "Configure enterprise profile", exact: true }).click();
+  const before = await disk();
+  for (const [choice, manual] of [["Enterprise", "Enterprise slug"], ["Organization", "Organization slug"], ["Repository", "Repository name"]]) {
+    const select = page.getByLabel(choice, { exact: true }), input = page.getByLabel(manual, { exact: true });
+    await expect(input).toBeHidden();
+    await select.selectOption(":other:");
+    await expect(input).toBeVisible();
+    await expect(input).toBeFocused();
+    expect(await disk()).toEqual(before);
+  }
+  await page.keyboard.press("Escape");
+  await page.getByRole("button", { name: "Configure enterprise profile", exact: true }).click();
+  await expect(page.getByLabel("Repository", { exact: true })).toHaveValue("__other__");
+  await expect(page.getByLabel("Repository name", { exact: true })).toBeHidden();
+});
+
 test("enterprise profile autosaves per document and is omitted from exports", async ({ page }) => {
   await page.goto(entry.url);
   const trigger = page.getByRole("button", { name: "Configure enterprise profile", exact: true });
@@ -210,13 +245,13 @@ test("enterprise profile autosaves per document and is omitted from exports", as
   await expect(panel).toBeHidden();
   await trigger.click();
   await expect(panel).toBeVisible();
-  await expect(page.getByLabel("Enterprise slug", { exact: true })).toBeFocused();
-  await page.getByLabel("Enterprise slug", { exact: true }).fill("Private-Enterprise");
+  await expect(page.getByLabel("Enterprise", { exact: true })).toBeFocused();
+  await fillProfileField(page, "Enterprise slug", "Private-Enterprise");
   await expect.poll(async () => (await disk()).profile.enterpriseSlug).toBe("Private-Enterprise");
-  await page.getByLabel("Organization slug", { exact: true }).fill("Private-Organization");
+  await fillProfileField(page, "Organization slug", "Private-Organization");
   await expect.poll(async () => (await disk()).profile.organizationSlug).toBe("Private-Organization");
-  await expect(page.getByLabel("Repository name", { exact: true })).toHaveValue("pets-workshop");
-  await page.getByLabel("Repository name", { exact: true }).fill("Private-Repository");
+  await expect(page.getByLabel("Repository name", { exact: true })).toHaveValue("");
+  await fillProfileField(page, "Repository name", "Private-Repository");
   await expect.poll(async () => (await disk()).profile.repositoryName).toBe("Private-Repository");
   await page.keyboard.press("Escape");
   await expect(panel).toBeHidden();
@@ -278,35 +313,52 @@ test("enterprise profile panel offers GitHub CLI detections and keeps manual ent
   await expect(page.locator("#profile-discovery-status")).toContainText("Found 0 enterprises and 2 organizations for @octocat");
   expect(calls).toBe(1);
   await expect(page.locator('[data-profile-detected="enterpriseSlug"]')).toContainText("read:enterprise");
-  const picker = page.getByLabel("Detected organizations (2)");
-  await expect(picker.locator("option")).toHaveText(["Choose a detected organization…", "Octo <Org> (octo-org)", "second-org"]);
+  const picker = page.getByLabel("Organization", { exact: true });
+  await expect(picker.locator("option")).toHaveText(["Choose organization…", "Octo <Org> (octo-org)", "second-org", "Other…"]);
   await expect(picker).toHaveClass(/form-select/);
   await picker.selectOption("octo-org");
+  await expect(page.getByLabel("Organization slug", { exact: true })).toBeHidden();
   await expect(page.getByLabel("Organization slug", { exact: true })).toHaveValue("octo-org");
   await expect.poll(async () => (await disk()).profile.organizationSlug).toBe("octo-org");
-  await page.getByLabel("Enterprise slug", { exact: true }).fill("manual-enterprise");
+  const beforeOther = await disk();
+  await picker.selectOption(":other:");
+  await expect(page.getByLabel("Organization slug", { exact: true })).toBeVisible();
+  await expect(page.getByLabel("Organization slug", { exact: true })).toBeFocused();
+  expect((await disk()).revision).toBe(beforeOther.revision);
+  await page.getByLabel("Organization slug", { exact: true }).fill("manual-org");
+  await expect.poll(async () => (await disk()).profile.organizationSlug).toBe("manual-org");
+  await page.getByRole("button", { name: "Detect enterprises and organizations", exact: true }).click();
+  await expect(page.getByRole("button", { name: "Detect enterprises and organizations", exact: true })).toBeEnabled();
+  await expect(picker).toHaveValue(":other:");
+  await expect(page.getByLabel("Organization slug", { exact: true })).toBeVisible();
+  await expect(page.getByLabel("Organization slug", { exact: true })).toHaveValue("manual-org");
+  await expect(picker.locator('option[value="manual-org"]')).toHaveText("manual-org");
+  await picker.selectOption("second-org");
+  await expect(page.getByLabel("Organization slug", { exact: true })).toBeHidden();
+  await expect.poll(async () => (await disk()).profile.organizationSlug).toBe("second-org");
+  await fillProfileField(page, "Enterprise slug", "manual-enterprise");
   await expect.poll(async () => (await disk()).profile.enterpriseSlug).toBe("manual-enterprise");
   const panel = page.getByRole("dialog", { name: "Enterprise profile" });
   const box = await panel.boundingBox();
   expect(box.width).toBeLessThanOrEqual(320);
   expect(await panel.evaluate((element) => element.scrollWidth <= element.clientWidth)).toBe(true);
-  await page.getByLabel("Enterprise slug", { exact: true }).fill("not valid");
+  await fillProfileField(page, "Enterprise slug", "not valid");
   await page.keyboard.press("Escape");
   await expect(panel).toBeVisible();
   await expect(page.locator("#profile-error")).toBeVisible();
-  await page.getByLabel("Enterprise slug", { exact: true }).fill("manual-enterprise");
+  await fillProfileField(page, "Enterprise slug", "manual-enterprise");
   await page.keyboard.press("Escape");
   await expect(panel).toBeHidden();
 });
 
-test("lab profile loads automatically, survives navigation and reload, and links both matching slugs", async ({ page }) => {
+test("account profile loads automatically, survives navigation and reload, and links each target", async ({ page }) => {
   let release, calls = 0;
   const ready = new Promise((resolve) => { release = resolve; });
   await page.route("**/api/profile/discover", async (route) => {
     calls++;
     expect(route.request().postDataJSON()).toEqual({ automatic: true });
     await ready;
-    await route.fulfill({ json: { profile: { enterpriseSlug: "ghuniverse1874-ea76", organizationSlug: "ghuniverse1874-ea76" } } });
+    await route.fulfill({ json: { profile: { enterpriseSlug: "acme-enterprise", organizationSlug: "platform-team", repositoryName: "sample-app" } } });
   });
   await page.goto(entry.url);
   await expect(page.locator("#profile-summary")).toContainText("Your Enterprise: Loading...");
@@ -321,8 +373,8 @@ test("lab profile loads automatically, survives navigation and reload, and links
   await answer.focus();
   release();
   await expect.poll(async () => (await disk()).profile).toEqual({
-    enterpriseSlug: "ghuniverse1874-ea76", organizationSlug: "ghuniverse1874-ea76",
-    repositoryName: "pets-workshop",
+    enterpriseSlug: "acme-enterprise", organizationSlug: "platform-team",
+    repositoryName: "sample-app",
   });
   await expect(answer).toBeChecked();
   await expect(answer).toBeFocused();
@@ -334,15 +386,15 @@ test("lab profile loads automatically, survives navigation and reload, and links
     await expect(links.nth(index).locator(`svg.octicon-${name}`)).toHaveAttribute("aria-hidden", "true");
     await expect(links.nth(index).locator(".profile-value")).not.toBeEmpty();
   }
-  await expect(links.nth(0)).toHaveText("Your Enterprise: ghuniverse1874-ea76");
-  await expect(links.nth(1)).toHaveText("Your Organization: ghuniverse1874-ea76");
+  await expect(links.nth(0)).toHaveText("Your Enterprise: acme-enterprise");
+  await expect(links.nth(1)).toHaveText("Your Organization: platform-team");
   await expect(links.nth(0)).toHaveClass("profile-label");
   await expect(links.nth(1)).toHaveClass("profile-label");
   await links.nth(0).focus();
   await expect(links.nth(0)).toBeFocused();
-  await expect(links.nth(0)).toHaveAttribute("href", "https://github.com/enterprises/ghuniverse1874-ea76");
-  await expect(links.nth(1)).toHaveAttribute("href", "https://github.com/ghuniverse1874-ea76");
-  await expect(links.nth(2)).toHaveAttribute("href", "https://github.com/ghuniverse1874-ea76/pets-workshop");
+  await expect(links.nth(0)).toHaveAttribute("href", "https://github.com/enterprises/acme-enterprise");
+  await expect(links.nth(1)).toHaveAttribute("href", "https://github.com/platform-team");
+  await expect(links.nth(2)).toHaveAttribute("href", "https://github.com/platform-team/sample-app");
   for (const width of [1280, 390, 320]) for (const tone of ["light", "dark"]) {
     await page.setViewportSize({ width, height: 1000 });
     await page.evaluate((value) => document.documentElement.setAttribute("data-theme-tone", value), tone);
@@ -358,7 +410,7 @@ test("lab profile loads automatically, survives navigation and reload, and links
     }
   }
   await page.reload();
-  await expect(links.nth(0)).toHaveText("Your Enterprise: ghuniverse1874-ea76");
+  await expect(links.nth(0)).toHaveText("Your Enterprise: acme-enterprise");
   await expect(page.locator("#profile-open")).toBeHidden();
   await page.goto(entry.url);
   await expect(page.locator("#profile-open")).toBeVisible();
@@ -375,7 +427,7 @@ test("first open offers GitHub CLI sign-in and detects enterprise, organization,
   await page.route("**/api/auth/sign-in", (route) => { signIns.push(route.request().postDataJSON()); return route.fulfill({ json: { opened: true } }); });
   await page.route("**/api/profile/discover", (route) => {
     discoveries++;
-    return route.fulfill({ json: { profile: { enterpriseSlug: "ghuniverse1874-ea76", organizationSlug: "ghuniverse1874-ea76", repositoryName: "pets-workshop" }, notices: [] } });
+    return route.fulfill({ json: { profile: { enterpriseSlug: "acme-enterprise", organizationSlug: "platform-team", repositoryName: "sample-app" }, notices: [] } });
   });
   await page.clock.install();
   await page.goto(entry.url);
@@ -393,14 +445,14 @@ test("first open offers GitHub CLI sign-in and detects enterprise, organization,
   status = { status: "ready", account: "lab-admin", missingScopes: [], message: "GitHub CLI is signed in as @lab-admin." };
   await page.clock.runFor(4500);
   await expect.poll(async () => (await disk()).profile).toEqual({
-    enterpriseSlug: "ghuniverse1874-ea76", organizationSlug: "ghuniverse1874-ea76", repositoryName: "pets-workshop",
+    enterpriseSlug: "acme-enterprise", organizationSlug: "platform-team", repositoryName: "sample-app",
   });
   await expect(page.locator("#profile-signin")).toBeHidden();
-  await expect(page.locator("#profile-summary a").nth(0)).toHaveText("Your Enterprise: ghuniverse1874-ea76");
+  await expect(page.locator("#profile-summary a").nth(0)).toHaveText("Your Enterprise: acme-enterprise");
   expect(discoveries).toBe(1);
 });
 
-test("failed sign-in checks and missing lab enterprises still offer the green Log into CLI button", async ({ page }) => {
+test("failed sign-in checks and missing enterprises still offer the green Log into CLI button", async ({ page }) => {
   await page.route("**/api/auth/status", (route) => route.fulfill({ status: 500, json: { message: "Status unavailable." } }));
   await page.goto(entry.url);
   const login = page.getByRole("button", { name: "Log into CLI", exact: true });
@@ -408,9 +460,9 @@ test("failed sign-in checks and missing lab enterprises still offer the green Lo
   await expect(login).toHaveClass(/btn-primary/);
   await page.unroute("**/api/auth/status");
   await page.route("**/api/auth/status", (route) => route.fulfill({ json: { status: "ready", account: "octocat", missingScopes: [], message: "GitHub CLI is signed in as @octocat." } }));
-  await page.route("**/api/profile/discover", (route) => route.fulfill({ json: { profile: null, error: { code: "not-found", message: "No enterprise matching ghuniverse1874- was found for this GitHub CLI account." } } }));
+  await page.route("**/api/profile/discover", (route) => route.fulfill({ json: { profile: null, error: { code: "not-found", message: "No enterprise was found for this GitHub CLI account." } } }));
   await page.getByRole("button", { name: "Check again", exact: true }).click();
-  await expect(page.locator("#profile-detection-error")).toContainText("No enterprise matching");
+  await expect(page.locator("#profile-detection-error")).toContainText("No enterprise");
   await expect(login).toBeVisible();
   await expect(login).toHaveClass(/btn-primary/);
   await expect(page.locator(".enterprise-profile")).not.toContainText("If this is not your lab account");
@@ -420,7 +472,7 @@ test("failed sign-in checks and missing lab enterprises still offer the green Lo
   expect(loginBox.x).toBeLessThan(configureBox.x);
   expect(loginBox.y).toBeGreaterThanOrEqual(summaryBox.y + summaryBox.height);
   await page.goto(`${entry.url}?path=${ALPHA.id}`);
-  await expect(page.locator("#profile-detection-error")).toContainText("No enterprise matching");
+  await expect(page.locator("#profile-detection-error")).toContainText("No enterprise");
   await expect(login).toBeHidden();
   await expect(configure).toBeHidden();
 });
@@ -440,8 +492,8 @@ test("signed-in accounts without admin scopes are offered a scope refresh", asyn
 });
 
 for (const failure of [
-  { code: "not-found", message: "No enterprise matching ghuniverse1874- was found." },
-  { code: "ambiguous", message: "Multiple enterprises match ghuniverse1874-." },
+  { code: "not-found", message: "No enterprise was found." },
+  { code: "ambiguous", message: "Multiple enterprises were found." },
   { code: "forbidden", message: "GitHub CLI's token cannot list enterprises." },
 ]) test(`automatic profile ${failure.code} exposes manual configuration on the overview only`, async ({ page }) => {
   await page.route("**/api/profile/discover", (route) => route.fulfill({ json: { profile: null, error: failure } }));
@@ -453,52 +505,52 @@ for (const failure of [
   await page.getByRole("link", { name: "Back to blocks", exact: true }).click();
   await expect(page).not.toHaveURL(/path=/);
   await page.getByRole("button", { name: "Configure enterprise profile", exact: true }).click();
-  await page.getByLabel("Enterprise slug", { exact: true }).fill("manual-enterprise");
+  await fillProfileField(page, "Enterprise slug", "manual-enterprise");
   await expect.poll(async () => (await disk()).profile.enterpriseSlug).toBe("manual-enterprise");
   await expect(page.locator("#profile-detection-error")).toBeVisible();
   await expect(page.locator("#profile-detection-error")).toHaveText(failure.message);
-  await page.getByLabel("Organization slug", { exact: true }).fill("manual-org");
+  await fillProfileField(page, "Organization slug", "manual-org");
   await expect.poll(async () => (await disk()).profile.organizationSlug).toBe("manual-org");
   await expect(page.locator("#profile-detection-error")).toBeHidden();
   await expect(page.locator("#profile-detection-error")).toBeEmpty();
   await page.keyboard.press("Escape");
   await expect(page.locator("#profile-panel")).toBeHidden();
-  await expect.poll(async () => (await disk()).profile).toEqual({ enterpriseSlug: "manual-enterprise", organizationSlug: "manual-org", repositoryName: "pets-workshop" });
+  await expect.poll(async () => (await disk()).profile).toEqual({ enterpriseSlug: "manual-enterprise", organizationSlug: "manual-org", repositoryName: "" });
   await expect(page.locator("#profile-summary a").nth(1)).toHaveAttribute("href", "https://github.com/manual-org");
   await expect(page.locator("#profile-detection-error")).toBeHidden();
 });
 
 test("failed automatic profile save shows fallback and retains the detected values for retry", async ({ page }) => {
   await page.route("**/api/profile/discover", (route) => route.fulfill({
-    json: { profile: { enterpriseSlug: "ghuniverse1874-ea76", organizationSlug: "ghuniverse1874-ea76" } },
+    json: { profile: { enterpriseSlug: "acme-enterprise", organizationSlug: "acme-enterprise" } },
   }));
   await page.route("**/api/profile", (route) => route.fulfill({ status: 409, json: { message: "Revision changed. Reload saved progress." } }));
   await page.goto(entry.url);
   await expect(page.locator("#profile-detection-error")).toContainText("could not be saved");
   await expect(page.locator("#error")).toContainText("Revision changed");
   await page.locator("#profile-open").click();
-  await expect(page.getByLabel("Enterprise slug", { exact: true })).toHaveValue("ghuniverse1874-ea76");
-  await expect(page.getByLabel("Organization slug", { exact: true })).toHaveValue("ghuniverse1874-ea76");
+  await expect(page.getByLabel("Enterprise slug", { exact: true })).toHaveValue("acme-enterprise");
+  await expect(page.getByLabel("Organization slug", { exact: true })).toHaveValue("acme-enterprise");
   await expect(page.locator("#profile-detection-error")).toBeVisible();
   await page.unroute("**/api/profile");
   await page.keyboard.press("Escape");
   await expect(page.locator("#profile-panel")).toBeHidden();
-  await expect.poll(async () => (await disk()).profile.enterpriseSlug).toBe("ghuniverse1874-ea76");
+  await expect.poll(async () => (await disk()).profile.enterpriseSlug).toBe("acme-enterprise");
   await expect(page.locator("#profile-detection-error")).toBeHidden();
 });
 
 test("automatic detection does not overwrite an existing incomplete profile", async ({ page }) => {
   await page.goto(entry.url);
   await page.locator("#profile-open").click();
-  await page.getByLabel("Enterprise slug", { exact: true }).fill("existing-enterprise");
+  await fillProfileField(page, "Enterprise slug", "existing-enterprise");
   await page.keyboard.press("Escape");
   await expect.poll(async () => (await disk()).profile.enterpriseSlug).toBe("existing-enterprise");
   await page.route("**/api/profile/discover", (route) => route.fulfill({
-    json: { profile: { enterpriseSlug: "ghuniverse1874-ea76", organizationSlug: "ghuniverse1874-ea76" } },
+    json: { profile: { enterpriseSlug: "acme-enterprise", organizationSlug: "acme-enterprise" } },
   }));
   await page.reload();
   await expect(page.locator("#profile-detection-error")).toContainText("existing profile was kept");
-  expect((await disk()).profile).toEqual({ enterpriseSlug: "existing-enterprise", organizationSlug: "", repositoryName: "pets-workshop" });
+  expect((await disk()).profile).toEqual({ enterpriseSlug: "existing-enterprise", organizationSlug: "", repositoryName: "" });
 });
 
 test("block progress separates answered decisions from personal steps and fits both themes", async ({ page }, testInfo) => {

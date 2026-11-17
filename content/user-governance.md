@@ -240,7 +240,7 @@ See [Managing policies and features for GitHub Copilot in your enterprise](https
 **Policies:** features.ai-managers, features.enterprise-policies
 **Catalog IDs:** intro.enterprise-custom-roles, access.enterprise-teams
 
-Create an enterprise team and a custom role with the three permissions below. You are the only user in your sandbox, so you cannot assign and test the role with another user here. Apply the team membership and role assignments in your production enterprise. See [Establishing AI managers](https://docs.github.com/en/enterprise-cloud@latest/copilot/tutorials/roll-out-at-scale/govern-at-scale/establish-ai-managers), [Creating enterprise teams](https://docs.github.com/en/enterprise-cloud@latest/admin/managing-accounts-and-repositories/managing-users-in-your-enterprise/create-enterprise-teams), and [Assigning roles in an enterprise](https://docs.github.com/en/enterprise-cloud@latest/admin/managing-accounts-and-repositories/managing-roles-in-your-enterprise/assign-roles).
+Create an enterprise team and a custom role with the three permissions below in an authorized test environment. Leave team membership and role assignments unchanged during this walkthrough. See [Establishing AI managers](https://docs.github.com/en/enterprise-cloud@latest/copilot/tutorials/roll-out-at-scale/govern-at-scale/establish-ai-managers), [Creating enterprise teams](https://docs.github.com/en/enterprise-cloud@latest/admin/managing-accounts-and-repositories/managing-users-in-your-enterprise/create-enterprise-teams), and [Assigning roles in an enterprise](https://docs.github.com/en/enterprise-cloud@latest/admin/managing-accounts-and-repositories/managing-roles-in-your-enterprise/assign-roles).
 
 #### Steps
 
@@ -448,15 +448,15 @@ See [Enterprise managed settings](https://docs.github.com/en/enterprise-cloud@la
 **Changed label:** Complete - published the preset
 **Inspection label:** Complete - preset was already published
 
-Publish the example above in the workshop sandbox so you can check it in the GitHub Copilot app during Verify.
+Publish the example above in an authorized test enterprise so you can check it in the GitHub Copilot app during Verify.
 
 #### Safety
 
-Change only the workshop sandbox enterprise's `.github-private` repository. You are the only user in this sandbox. In production, managed settings apply to everyone licensed through the enterprise or its organizations. Never publish to a production enterprise without confirming the target, scope, and approval.
+Confirm the target enterprise, its managed-settings repository, and everyone affected before publishing. Use an authorized test enterprise. Never publish to a production enterprise without confirming the target, scope, and approval.
 
 #### Steps
 
-1. In the sandbox `.github-private` repository, add the example for your decision to `copilot/managed-settings.json`. Keep any other settings.
+1. Confirm that your test enterprise has a designated `.github-private` repository selected as its source of client governance. If not, follow [Getting started with enterprise-managed settings](https://docs.github.com/en/enterprise-cloud@latest/copilot/how-tos/administer-copilot/manage-for-enterprise/use-managed-settings/get-started) before continuing. In that repository, add the example for your decision to `copilot/managed-settings.json`. Keep any other settings.
 2. Commit the change to the default branch.
 3. Navigate to your **[Enterprise Settings -> AI controls -> Agents](https://github.com/enterprises/{{enterprise.slug}}/ai-controls/agents "fallback=https://github.com/settings/enterprises")** and check the "Copilot settings validation" section for errors. If the section isn't displayed, the validator found no issues.
 
@@ -485,11 +485,11 @@ See [Managing model availability and setting a baseline](https://docs.github.com
 
 ## Validation
 
-Some decisions in this block can't be validated in the workshop sandbox:
+Some decisions need additional conditions to validate:
 
-- **Policy decision makers:** Can't be tested here, because it requires signing in as someone who holds the assigned role.
-- `Default availability for released models` and `Default policy for new features`: These settings take effect only when GitHub releases a new model or feature, so you can't trigger them during the workshop. After the next release, check that it was enabled or left disabled as you decided.
-- **Preview features:** The workshop sandbox currently has no suitable preview feature to demonstrate the difference.
+- **Policy decision makers:** Testing requires a separate account with the assigned role. Leave access testing unverified if none is available.
+- `Default availability for released models` and `Default policy for new features`: These settings take effect only when GitHub releases a new model or feature. After the next release, check that it was enabled or left disabled as you decided.
+- **Preview features:** If no suitable preview feature is available in your test enterprise, leave this behavior unverified.
 
 ### Exercise: UG-PRESET-LAB
 

@@ -30,7 +30,7 @@ const progressForAgent = (state) => {
 session = await joinSession({
   canvases: [createCanvas({
     id: "governance-lab",
-    displayName: "Copilot Governance Workshop",
+    displayName: "Copilot Governance Lab",
     description: "User, Billing, Agent, Context and Observability governance decisions and labs, with Markdown/JSON summary export.",
     inputSchema: {
       type: "object",
@@ -125,7 +125,7 @@ session = await joinSession({
         entry = { ...await openServer({ workshop, documentId, dev, sendToAgent, openTerminal, log: (...args) => session.log(...args) }), documentId, dev };
         servers.set(ctx.instanceId, entry);
       }
-      return { title: "Copilot Governance Workshop", url: entry.url };
+      return { title: "Copilot Governance Lab", url: entry.url };
     },
     onClose: async (ctx) => {
       const entry = servers.get(ctx.instanceId);

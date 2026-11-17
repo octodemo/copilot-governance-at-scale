@@ -79,7 +79,7 @@ Content is loaded from the checkout; progress is stored per document ID in the u
   Corrupt or unknown records are rejected with recovery guidance, never silently reset.
 - Forms autosave without re-rendering inputs; failed saves keep the input and show an error.
 - An optional enterprise profile personalizes links and commands.
-  It is omitted from exports.
+  It is omitted from exports. Read-only discovery selects an enterprise only when exactly one is visible, then lists that enterprise's organizations rather than inferring a relationship from names. Multiple enterprise or organization matches require manual selection. A repository is selected only when exactly one is visible; missing names have no sample-repository default. Existing profiles are not overwritten.
 - Exports (Markdown and JSON) label outcomes as participant-reported.
   They are not secret-redacted, so review them before sharing.
 

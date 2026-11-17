@@ -1,7 +1,6 @@
 # Workshop setup guide
 
-For **GitHub Copilot at scale: An interactive lab for enterprise admins** at
-GitHub Universe.
+For independent practice or guided delivery of **GitHub Copilot at scale: An interactive lab for enterprise admins**.
 
 [Workshop overview](../README.md) |
 [Facilitator guide](facilitator-guide.md) |
@@ -90,7 +89,7 @@ Run the preparation checks below before rehearsing changed workshop material.
    GitHub settings. Report any loading error and stop.
    ```
 
-3. Confirm the title is **Copilot Governance Workshop** and all six blocks are
+3. Confirm the title is **Copilot Governance Lab** and all six blocks are
    present.
 4. If the header shows **Sign-in required**, select **Log into CLI**
    and finish the browser sign-in in the opened terminal; detection then runs

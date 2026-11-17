@@ -58,7 +58,8 @@ test("PowerShell input quoting preserves literal quotes, paths and metacharacter
 });
 
 test("authored Windows commands execute with stubbed CLI calls and produce the expected report files", psTest, async (t) => {
-  const inputs = { "report-id": "report-123", "budget-id": "budget-456", "user-login": "test-user",
+  const inputs = { "start-date": "2026-10-01", "end-date": "2026-10-31",
+    "report-id": "report-123", "budget-id": "budget-456", "user-login": "test-user",
     "download-url": "https://example.test/report?signature=literal&part=1", "output-file": "Private report.csv" };
   const scripts = windowsCommands.map((template) => resolveContentCommand(template, profile, inputs, "powershell"));
   const { workspace } = await runPowerShell(t, `

@@ -1,12 +1,11 @@
-# Attendee instructions
+# Lab instructions
 
 ## GitHub Copilot at scale: An interactive lab for enterprise admins
 
-Use the GitHub Copilot app and this repository's **Copilot Governance Workshop**
+Use the GitHub Copilot app and this repository's **Copilot Governance Lab**
 canvas to explore enterprise governance decisions and record what you learn.
 
-[Back to the workshop overview](../README.md) |
-[GitHub Universe session page](https://reg.githubuniverse.com/flow/github/universe26/attendee-portal/page/sessioncatalog/session/1788880889921001wVyZ)
+[Back to the lab overview](../README.md)
 
 ## Prerequisites
 
@@ -18,9 +17,7 @@ Before you begin, have:
   [official app quickstart](https://docs.github.com/en/copilot/get-started/quickstart-copilot-app)
   for supported sign-in and model-provider options.
 - Access to [this workshop repository](https://github.com/octodemo/copilot-governance-at-scale).
-- For live configuration exercises, an explicitly authorized sandbox and the
-  access required by the selected exercise. During the workshop, get the exact
-  enterprise, organization, repository, and permitted actions from the presenters.
+- For live configuration exercises, an explicitly authorized test enterprise, organization, and repository, with the permissions required by the selected exercise. Confirm the permitted actions with the environment owner.
 - An approved location outside the repository for your exported notes.
 
 If your access comes from Copilot Business or Copilot Enterprise, your
@@ -49,8 +46,7 @@ exports.
 
 1. In the app sidebar, next to **Projects**, select **+**.
 2. Under **Add project from**, choose **GitHub repository**.
-3. Find and clone `octodemo/copilot-governance-at-scale`. If the presenters
-   explicitly assign a different workshop copy, use that repository instead.
+3. Find and clone `octodemo/copilot-governance-at-scale`, or your own copy of this repository.
 
 If you already cloned the workshop, choose **Local folder or repository** and
 select that checkout instead. These connection options are described in the
@@ -65,12 +61,12 @@ Send this prompt:
 
 ```text
 Open this repository's existing governance-lab canvas for me.
-Use documentId "universe-2026" and dev false.
+Use documentId "default" and dev false.
 Do not create or modify a canvas, edit repository files, or change any
 GitHub settings. If the canvas is unavailable, report the problem and stop.
 ```
 
-The panel should be titled **Copilot Governance Workshop**. It should offer
+The panel should be titled **Copilot Governance Lab**. It should offer
 six blocks, starting with **Access Management**. Use `governance-lab`.
 
 This repository contains its workshop extension under
@@ -79,18 +75,16 @@ canvases, see
 [Working with canvas extensions](https://docs.github.com/en/copilot/how-tos/github-copilot-app/working-with-canvas-extensions).
 You are opening the existing workshop, not asking the agent to build a new one.
 
-### 4. Confirm your lab accounts
+### 4. Configure and confirm your targets
 
-Check **Your Enterprise** and **Your Organization** in the canvas against the
-targets supplied by your presenters or approved for your own practice.
+Check **Your Enterprise**, **Your Organization**, and **Your Repository** in the canvas against the targets approved for your practice.
 Detection is not permission to make changes.
 
-If automatic detection fails, use **Configure enterprise profile** and enter
-the approved **Enterprise slug** and **Organization slug**. Get these values
-from your presenters or, when practicing on your own, from the owner of your
-authorized sandbox; do not guess them or substitute a production account.
-If the displayed accounts are wrong, pause and ask the presenters or sandbox
-owner for help before following any settings links.
+Automatic detection selects an enterprise only when exactly one is visible, then checks the organizations belonging to it. Multiple enterprises or organizations require manual selection. Use **Configure enterprise profile** to choose saved or detected targets. Choose **Other…** in a field to reveal manual entry for its **Enterprise slug**, **Organization slug**, or **Repository name**. A repository is detected only when exactly one is visible; there is no default sample repository. Existing complete profiles are retained.
+
+The repository serves as an example for checking how your policy settings behave. You can use any repository you are authorized to test in. For a starting point, we recommend [forking](https://docs.github.com/en/pull-requests/how-tos/work-with-forks/fork-a-repo) [github-samples/copilot-workshops](https://github.com/github-samples/copilot-workshops) into your chosen organization. Select that organization in the profile, then enter your fork's repository name without the owner or a full URL.
+
+Get these identifiers from the environment owner. Do not guess them or substitute a production account. If the displayed accounts are wrong, correct the profile before following settings links.
 
 The canvas records your decisions and observations. It does not provision your
 sandbox or perform administrative changes for you.
@@ -102,13 +96,12 @@ block's prerequisites are met, and you know the permitted target, scope,
 consequences, and rollback steps for any change.
 
 If an account, permission, or exercise prerequisite is missing, record the
-blocker and work with your presenter. Do not enable spending, broaden access,
+blocker and work with your environment owner. Do not enable spending, broaden access,
 or weaken safeguards just to complete an exercise.
 
 ## Work through a block
 
-During the live session, follow the presenters' selection and pace. On your
-own, choose any block whose prerequisites you meet; you do not have to complete
+Choose any block whose prerequisites you meet; you do not have to complete
 every block in order.
 
 | Stage in the canvas | What to do |
@@ -149,7 +142,7 @@ the session.
    structured data.
 4. Save the export outside the repository and review it for sensitive notes,
    account details, and confidential information before sharing.
-5. Complete any sandbox cleanup agreed with the presenters.
+5. Restore the settings you changed and complete any cleanup agreed with the environment owner.
 
 Keep the same app session and document ID when returning to your work. To
 reopen the panel, reuse the prompt from Exercise 0. Do not reset progress or

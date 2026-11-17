@@ -239,15 +239,12 @@ The steps below follow your choices. Complete the recipes selected by your answe
 
 Create a custom enterprise role for people who need to view enterprise metrics without becoming enterprise owners.
 
-> [!WARNING]
-> As we only have one user in this Sandbox, you won't be able to actually assign and test the role you create here to a user.
-
 #### Steps
 
 1. Navigate to your **[Enterprise Settings -> People -> Enterprise roles -> Role management](https://github.com/enterprises/{{enterprise.slug}}/enterprise_roles "fallback=https://github.com/settings/enterprises")**.
 2. Create a custom role named `AI Metrics Viewer` with a clear description.
 3. Add the `View Enterprise Copilot Metrics` permission and create the role.
-4. **Production only:** Assign the role only to the intended metrics viewers. Skip this step in this sandbox, because you are its only user. Enterprise owners can also view enterprise metrics.
+4. Review the intended metrics viewers before assigning the role. If no separate test user is available, leave role assignment and access testing unverified. Enterprise owners can also view enterprise metrics.
 
 ### Recipe: obs-org-metrics-access
 **Title:** Set Copilot dashboard availability
@@ -323,7 +320,7 @@ Change settings only in your sandbox enterprise and organization. Finish with th
 **Catalog IDs:** metrics.industry-comparisons
 
 > [!NOTE]
-> This sandbox has no usage metrics, so you won't be able to view industry comparisons here. See [industry comparisons in the Copilot impact dashboard](https://github.blog/changelog/2026-10-22-industry-comparisons-in-the-copilot-impact-dashboard/) to see how they look in action.
+> If your test enterprise has no usage metrics, use the [industry comparisons overview](https://github.blog/changelog/2026-10-22-industry-comparisons-in-the-copilot-impact-dashboard/) as an illustration rather than live evidence.
 
 #### Steps
 
@@ -340,7 +337,7 @@ Change settings only in your sandbox enterprise and organization. Finish with th
 **Catalog IDs:** metrics.industry-comparisons
 
 > [!NOTE]
-> This sandbox has no usage metrics, so you won't be able to view industry comparisons here. See [industry comparisons in the Copilot impact dashboard](https://github.blog/changelog/2026-10-22-industry-comparisons-in-the-copilot-impact-dashboard/) to see how they look in action.
+> If your test enterprise has no usage metrics, use the [industry comparisons overview](https://github.blog/changelog/2026-10-22-industry-comparisons-in-the-copilot-impact-dashboard/) as an illustration rather than live evidence.
 
 #### Steps
 
@@ -356,11 +353,11 @@ Change settings only in your sandbox enterprise and organization. Finish with th
 Review the managed settings for a supported Copilot client.
 
 > [!WARNING]
-> This is for showcase purposes only. This lab has no OpenTelemetry collector endpoint, so you cannot test telemetry delivery here.
+> This example is for review only. Its endpoint is a placeholder. Do not publish it as a working telemetry configuration.
 
 #### Steps
 
-1. Open [`copilot/managed-settings.json`](https://github.com/{{organization.slug}}/.github-private/blob/HEAD/copilot/managed-settings.json "fallback=https://github.com/settings/organizations") in your organization's `.github-private` repository. The file does not contain a telemetry configuration. Review this example against the [enterprise managed settings reference](https://docs.github.com/en/enterprise-cloud@latest/copilot/reference/enterprise-administrators/enterprise-managed-settings) and [OpenTelemetry guide](https://docs.github.com/en/enterprise-cloud@latest/copilot/concepts/enterprise/opentelemetry). You can add it to the file if you want, but the example endpoint does not exist, so no telemetry is delivered:
+1. Review this example against the [enterprise managed settings reference](https://docs.github.com/en/enterprise-cloud@latest/copilot/reference/enterprise-administrators/enterprise-managed-settings) and [OpenTelemetry guide](https://docs.github.com/en/enterprise-cloud@latest/copilot/concepts/enterprise/opentelemetry). Compare it with your existing managed settings if available. A working configuration needs an authorized OTLP backend; the example endpoint below is a placeholder:
 
    ```json
    {
@@ -392,7 +389,7 @@ Identity capture adds the authenticated Copilot account name, local operating-sy
 
 #### Steps
 
-1. If you added the telemetry configuration to `copilot/managed-settings.json`, change `telemetry.capture.identity` from `false` to `true`. Leave the other capture classes set to `false`:
+1. In your proposed telemetry configuration, change `telemetry.capture.identity` from `false` to `true`. Leave the other capture classes set to `false`:
 
    ```json
    {
@@ -429,7 +426,7 @@ Identity capture adds the authenticated Copilot account name, local operating-sy
 #### Safety
 
 > [!WARNING]
-> This is for showcase purposes only. This lab has no external streaming destination, so you cannot test audit-log streaming here.
+> Inspect the available options without changing a stream. Testing delivery requires a separately authorized destination and is outside this walkthrough.
 
 #### Variant: github-history
 
@@ -476,7 +473,7 @@ These checks follow your decisions about audit evidence, dashboard enablement, a
 4. Restore `Enabled everywhere` and reload the dashboards.
 
 > [!NOTE]
-> You will not see usage data in this sandbox. Compare the enabled and disabled dashboard states rather than looking for charts.
+> If no usage data is available, compare the enabled and disabled dashboard states rather than looking for charts.
 
 ##### Expected result
 
@@ -500,7 +497,7 @@ If the control or a dashboard is unavailable, identify the restriction. Do not c
 5. Restore `Disabled everywhere` and reload the dashboards.
 
 > [!NOTE]
-> You will not see usage data in this sandbox. Compare the enabled and disabled dashboard states rather than looking for charts.
+> If no usage data is available, compare the enabled and disabled dashboard states rather than looking for charts.
 
 ##### Expected result
 
@@ -519,7 +516,7 @@ If the control or a dashboard is unavailable, identify the restriction. An acces
 ##### Steps
 
 1. Reopen `Copilot metrics API` in your **[Enterprise Settings -> AI controls -> Copilot](https://github.com/enterprises/{{enterprise.slug}}/ai-controls/copilot "fallback=https://github.com/settings/enterprises")** and check that the saved value is `Disabled`.
-2. Open a terminal directly in the GitHub Copilot app and try this enterprise report request. It uses the enterprise saved in your workshop profile:
+2. Open a terminal directly in the GitHub Copilot app and try this enterprise report request. It uses the enterprise saved in your profile:
 
    ```sh profile
    gh api --method GET \
@@ -548,7 +545,7 @@ If the request fails, distinguish authorization and data-availability limitation
 
 ##### Steps
 
-1. Open a terminal directly in the GitHub Copilot app. This command uses the organization saved in your workshop profile. Run this in a new local directory so it does not overwrite an earlier export. The request retrieves download links and the report period; it is not the usage data itself.
+1. Open a terminal directly in the GitHub Copilot app. This command uses the organization saved in your profile. Run this in a new local directory so it does not overwrite an earlier export. The request retrieves download links and the report period; it is not the usage data itself.
 
    ```sh profile
    gh api --method GET \
@@ -637,7 +634,7 @@ If the API returns an error, record its status and message. Check authorization 
 
 ##### Steps
 
-1. Open a terminal directly in the GitHub Copilot app. This command uses the enterprise saved in your workshop profile. Run this in a new local directory so it does not overwrite an earlier export. The request retrieves download links and the report period; it is not the usage data itself.
+1. Open a terminal directly in the GitHub Copilot app. This command uses the enterprise saved in your profile. Run this in a new local directory so it does not overwrite an earlier export. The request retrieves download links and the report period; it is not the usage data itself.
 
    ```sh profile
    gh api --method GET \
@@ -737,7 +734,7 @@ If the API returns an error, check authorization and policy settings separately 
 5. Check that the streaming settings remain unchanged. This decision keeps audit history in GitHub; no API export or external destination is needed.
 
 > [!TIP]
-> If you do not see Copilot activity, start a [Copilot Chat session on GitHub.com](https://github.com/copilot), or open your [Petstore workshop repository](https://github.com/{{organization.slug}}/{{repository.name}} "fallback=https://github.com/settings/organizations") and start a [Copilot cloud agent session](https://docs.github.com/en/enterprise-cloud@latest/copilot/how-tos/use-copilot-agents/cloud-agent/use-cloud-agent-on-github) there. Ask the agent to summarize the repository without changing files, then repeat the activity check.
+> If you do not see Copilot activity, start a [Copilot Chat session on GitHub.com](https://github.com/copilot), or open your [test repository](https://github.com/{{organization.slug}}/{{repository.name}} "fallback=https://github.com/settings/organizations") and start a [Copilot cloud agent session](https://docs.github.com/en/enterprise-cloud@latest/copilot/how-tos/use-copilot-agents/cloud-agent/use-cloud-agent-on-github) there. Ask the agent to summarize the repository without changing files, then repeat the activity check.
 
 See [monitoring agentic activity](https://docs.github.com/en/enterprise-cloud@latest/copilot/how-tos/administer-copilot/manage-for-enterprise/manage-agents/monitor-agentic-activity) and [agent audit event fields](https://docs.github.com/en/enterprise-cloud@latest/copilot/reference/enterprise-administrators/agentic-audit-log-events).
 
@@ -754,7 +751,7 @@ If access or events are unavailable, review the documented `actor:Copilot` filte
 ##### Steps
 
 1. Navigate to your **[Enterprise Settings -> Settings -> Audit log](https://github.com/enterprises/{{enterprise.slug}}/audit-log "fallback=https://github.com/settings/enterprises")**. Search for `action:copilot` to review Copilot policy and license events, then `actor:Copilot` for agent activity.
-2. Open a terminal directly in the GitHub Copilot app and run this command to query the latest audit log entries, including web and Git events. It uses the enterprise saved in your workshop profile:
+2. Open a terminal directly in the GitHub Copilot app and run this command to query the latest audit log entries, including web and Git events. It uses the enterprise saved in your profile:
 
    ```sh profile
    gh api --method GET \
@@ -808,7 +805,7 @@ If access or events are unavailable, review the documented `actor:Copilot` filte
 6. Keep exports private and remove them when no longer needed. This retrieves audit events, not a usage metrics report; a one-off export does not set up recurring exports, retention, or streaming.
 
 > [!TIP]
-> If you do not see Copilot activity, start a [Copilot Chat session on GitHub.com](https://github.com/copilot), or open your [Petstore workshop repository](https://github.com/{{organization.slug}}/{{repository.name}} "fallback=https://github.com/settings/organizations") and start a [Copilot cloud agent session](https://docs.github.com/en/enterprise-cloud@latest/copilot/how-tos/use-copilot-agents/cloud-agent/use-cloud-agent-on-github) there. Ask the agent to summarize the repository without changing files, then repeat the activity check.
+> If you do not see Copilot activity, start a [Copilot Chat session on GitHub.com](https://github.com/copilot), or open your [test repository](https://github.com/{{organization.slug}}/{{repository.name}} "fallback=https://github.com/settings/organizations") and start a [Copilot cloud agent session](https://docs.github.com/en/enterprise-cloud@latest/copilot/how-tos/use-copilot-agents/cloud-agent/use-cloud-agent-on-github) there. Ask the agent to summarize the repository without changing files, then repeat the activity check.
 
 See [audit search syntax](https://docs.github.com/en/enterprise-cloud@latest/admin/monitoring-activity-in-your-enterprise/reviewing-audit-logs-for-your-enterprise/searching-the-audit-log-for-your-enterprise), [agent audit event fields](https://docs.github.com/en/enterprise-cloud@latest/copilot/reference/enterprise-administrators/agentic-audit-log-events), and the [enterprise audit log REST API](https://docs.github.com/en/enterprise-cloud@latest/rest/enterprise-admin/audit-log#get-the-audit-log-for-an-enterprise).
 
@@ -827,16 +824,16 @@ If access or events are unavailable, review the endpoint's response shape and th
 1. Navigate to your **[Enterprise Settings -> AI controls -> Agent sessions -> View all](https://github.com/enterprises/{{enterprise.slug}}/ai-controls/agents/sessions "fallback=https://github.com/settings/enterprises")** and inspect whether any session evidence is available.
 2. Navigate to your **[Enterprise Settings -> Settings -> Audit log](https://github.com/enterprises/{{enterprise.slug}}/audit-log "fallback=https://github.com/settings/enterprises")**. Search for `action:copilot` to review Copilot policy and license events, then `actor:Copilot` for agent activity.
 3. Review any returned records for the action, time, actor, and `agent_session_id`. If no agent-associated events appear, distinguish that from an authorization error.
-4. Navigate to your **[Enterprise Settings -> Settings -> Audit log](https://github.com/enterprises/{{enterprise.slug}}/audit-log "fallback=https://github.com/settings/enterprises")** and explore the available streaming options. This lab has no backend for a new stream. Existing events in GitHub do not prove delivery to an external destination.
+4. Navigate to your **[Enterprise Settings -> Settings -> Audit log](https://github.com/enterprises/{{enterprise.slug}}/audit-log "fallback=https://github.com/settings/enterprises")** and explore the available streaming options without changing a stream. Existing events in GitHub do not prove delivery to an external destination.
 
 > [!TIP]
-> If you do not see Copilot activity, start a [Copilot Chat session on GitHub.com](https://github.com/copilot), or open your [Petstore workshop repository](https://github.com/{{organization.slug}}/{{repository.name}} "fallback=https://github.com/settings/organizations") and start a [Copilot cloud agent session](https://docs.github.com/en/enterprise-cloud@latest/copilot/how-tos/use-copilot-agents/cloud-agent/use-cloud-agent-on-github) there. Ask the agent to summarize the repository without changing files, then repeat the activity check.
+> If you do not see Copilot activity, start a [Copilot Chat session on GitHub.com](https://github.com/copilot), or open your [test repository](https://github.com/{{organization.slug}}/{{repository.name}} "fallback=https://github.com/settings/organizations") and start a [Copilot cloud agent session](https://docs.github.com/en/enterprise-cloud@latest/copilot/how-tos/use-copilot-agents/cloud-agent/use-cloud-agent-on-github) there. Ask the agent to summarize the repository without changing files, then repeat the activity check.
 
 See [monitoring agentic activity](https://docs.github.com/en/enterprise-cloud@latest/copilot/how-tos/administer-copilot/manage-for-enterprise/manage-agents/monitor-agentic-activity) and [streaming the audit log](https://docs.github.com/en/enterprise-cloud@latest/admin/monitoring-activity-in-your-enterprise/reviewing-audit-logs-for-your-enterprise/streaming-the-audit-log-for-your-enterprise).
 
 ##### Expected result
 
-You have inspected the available audit evidence without changing a stream. External delivery and retention remain unverified because this lab has no destination backend.
+You have inspected the available audit evidence without changing a stream. This inspection does not verify external delivery or retention.
 
 ##### Fallback
 

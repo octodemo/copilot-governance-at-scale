@@ -21,7 +21,7 @@ test.beforeEach(async ({ page }) => {
     json: { status: "ready", account: "octocat", missingScopes: [], message: "GitHub CLI is signed in as @octocat." },
   }));
   await page.route("**/api/profile/discover", (route) => route.fulfill({
-    json: { profile: null, error: { code: "not-found", message: "No lab enterprise found in this test preview." } },
+    json: { profile: null, error: { code: "not-found", message: "No enterprise found in this test preview." } },
   }));
   workspace = await workspaceFor({ after: (fn) => cleanup.push(fn) });
   store = createStore(workspace, content);
@@ -58,12 +58,14 @@ test("repository profile defaults, edits links in place, persists across panels,
   const block = `${linked.url}?path=example-block&stage=understand`;
   const link = page.locator("#main").getByRole("link", { name: "Repository Settings", exact: true });
   await page.goto(block);
-  await expect(link).toHaveAttribute("href", "https://example.test/lab-org/pets-workshop/settings");
+  await expect(link).toHaveAttribute("href", "https://example.test/organizations");
   await expect(page.locator("#profile-open")).toBeHidden();
   await page.goto(linked.url);
   await page.locator("#profile-open").click();
   const input = page.getByLabel("Repository name", { exact: true });
-  await expect(input).toHaveValue("pets-workshop");
+  await expect(input).toBeHidden();
+  await page.getByLabel("Repository", { exact: true }).selectOption(":other:");
+  await expect(input).toHaveValue("");
   await input.fill("custom.repo_name");
   await expect(input).toBeFocused();
   await expect.poll(async () => (await linkedStore.read("repository-profile")).profile.repositoryName).toBe("custom.repo_name");
@@ -74,6 +76,7 @@ test("repository profile defaults, edits links in place, persists across panels,
     .toHaveAttribute("href", "https://example.test/lab-org/custom.repo_name/settings");
   await second.close();
   await page.locator("#profile-open").click();
+  await page.getByLabel("Repository", { exact: true }).selectOption(":other:");
   await input.fill("");
   await expect(input).toBeFocused();
   await expect.poll(async () => (await linkedStore.read("repository-profile")).profile.repositoryName).toBe("");
@@ -922,6 +925,7 @@ for (const [label, profile] of [
   expect((await store.read(documentId)).profile).toEqual(profile);
   await page.locator("#profile-open").click();
   await expect(page.locator("#enterprise-slug")).toHaveValue(profile.enterpriseSlug);
+  await page.getByLabel("Organization", { exact: true }).selectOption(":other:");
   await page.locator("#organization-slug").fill("manually-completed");
   await expect.poll(async () => (await store.read(documentId)).profile.organizationSlug).toBe("manually-completed");
 });
