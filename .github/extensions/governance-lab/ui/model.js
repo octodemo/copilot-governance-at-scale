@@ -72,11 +72,6 @@ export function configurationTasks(path, progress) {
   }));
   return [...recipes, ...additional];
 }
-/** All authored configuration steps in a block, regardless of which decisions select them. */
-export function totalConfigurationSteps(path) {
-  const stage = path.stages.configure;
-  return path.recipes.length + (stage.conclusion ? 1 : 0) + (stage.additionalSteps?.length ?? 0);
-}
 export function configurationChecklist(path, progress, checklist = []) {
   return configurationTasks(path, progress).map((task) => ({
     ...task, done: task.eligible && checklist.some((record) =>

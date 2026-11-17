@@ -5,7 +5,7 @@ import { icon } from "./icons.js";
 import { DEFAULT_REPOSITORY_NAME, resolveContentCommand, resolveContentLinkTarget, resolveValidationVariant } from "../../../../lib/workshop-resolver.mjs";
 import {
   configurationChecklist, configurationFor, configurationRoute, decisionOverview, decisionRoute, exerciseBasis, labRoute, navigation, parseRoute,
-  readyToVerify, resumeRoute, summary, totalConfigurationSteps, verificationChecklist, workflowSteps,
+  readyToVerify, resumeRoute, summary, verificationChecklist, workflowSteps,
 } from "./model.js";
 
 watchTheme(document);
@@ -866,7 +866,8 @@ function render() {
   if (route.view === "home") main.innerHTML = `<h2>Choose your governance journey</h2><p class="muted">Explore decisions, selected guidance, and exercises. Configuration and validation remain separate.</p>
     <div class="journeys">${content.paths.map((path, index) => {
       const row = rows.find((item) => item.id === path.id);
-      const done = row.checklist.filter((task) => task.done).length, total = totalConfigurationSteps(path);
+      const done = row.checklist.filter((task) => task.done).length, total = row.checklist.length;
+      const decisionsComplete = row.resolved === path.decisions.length;
       return `<a class="journey" href="${resumeRoute(path, state)}" data-route>
       <span class="journey-copy"><h3>${String(index + 1).padStart(2, "0")} &mdash; ${html(path.title)}</h3><span class="muted">${html(path.description)}</span>
       ${path.subtitle ? `<span class="journey-progress">${html(path.subtitle)}</span>` : ""}</span>
@@ -874,8 +875,8 @@ function render() {
       <span class="journey-meters">
         <span><span class="journey-meter-label">Decision taken <span>${row.resolved} / ${path.decisions.length}</span></span>
           ${progressMeter("Decision taken", row.resolved, path.decisions.length, `${row.resolved} of ${path.decisions.length} decisions answered`)}</span>
-        <span><span class="journey-meter-label">Configurations applied <span>${done} / ${total}</span></span>
-          ${progressMeter("Configurations applied", done, total, total ? `${done} of ${total} steps marked done, current checklist: ${row.checklist.length} steps; personal markers, not applied configuration` : "No configuration steps authored")}</span>
+        <span><span class="journey-meter-label">Configuration steps done ${decisionsComplete ? `<span>${done} / ${total}</span>` : ""}</span>
+          ${decisionsComplete ? progressMeter("Configuration steps done", done, total, total ? `${done} of ${total} steps marked done; personal markers, not applied configuration` : "No configuration steps selected") : '<span class="journey-meter" aria-hidden="true"></span>'}</span>
       </span></a>`;
     }).join("")}</div>`;
   else if (route.view === "summary") main.innerHTML = renderSummary(rows);

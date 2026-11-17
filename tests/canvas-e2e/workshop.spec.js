@@ -5,7 +5,7 @@ import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { spawn } from "node:child_process";
 import { loadContent } from "../../.github/extensions/governance-lab/content.mjs";
-import { configurationChecklist, configurationRoute, totalConfigurationSteps } from "../../.github/extensions/governance-lab/ui/model.js";
+import { configurationChecklist, configurationRoute } from "../../.github/extensions/governance-lab/ui/model.js";
 import { FIXTURE_ROOT } from "./fixtures/workshop.mjs";
 
 // Behaviour tests run against test-owned fixture content so authored workshop edits cannot break them.
@@ -505,15 +505,19 @@ test("block progress separates answered decisions from personal steps and fits b
   await page.goto(entry.url);
   const card = page.locator("a.journey").filter({ hasText: ALPHA.title });
   await expect(card.getByRole("progressbar", { name: "Decision taken", exact: true })).toHaveAttribute("value", "0");
+  await expect(card.locator(".journey-meter-label").nth(1)).toHaveText("Configuration steps done");
+  await expect(card.getByRole("progressbar", { name: "Configuration steps done", exact: true })).toHaveCount(0);
+  await expect(card.locator(".journey-meters > span").nth(1).locator(".journey-meter[aria-hidden=true]")).toBeVisible();
   await chooseAll(page, ALPHA.id);
   await page.getByRole("button", { name: "Mark as done", exact: true }).click();
   await page.getByRole("link", { name: "Back to blocks", exact: true }).click();
   const decisions = card.getByRole("progressbar", { name: "Decision taken", exact: true });
-  const steps = card.getByRole("progressbar", { name: "Configurations applied", exact: true });
+  const steps = card.getByRole("progressbar", { name: "Configuration steps done", exact: true });
   await expect(decisions).toHaveAttribute("value", String(ALPHA.decisions.length));
   await expect(decisions).toHaveAttribute("max", String(ALPHA.decisions.length));
   await expect(steps).toHaveAttribute("value", "1");
-  await expect(steps).toHaveAttribute("max", String(totalConfigurationSteps(ALPHA)));
+  await expect(steps).toHaveAttribute("max", String(checklist(ALPHA).length));
+  await expect(card.locator(".journey-meter-label").nth(1)).toContainText(`1 / ${checklist(ALPHA).length}`);
   await expect(steps).toHaveAttribute("aria-valuetext", /personal markers, not applied configuration/);
   for (const width of [1280, 390, 320]) for (const tone of ["light", "dark"]) {
     await page.setViewportSize({ width, height: 1000 });
@@ -533,6 +537,19 @@ test("block progress separates answered decisions from personal steps and fits b
   }
   await page.reload();
   await expect(steps).toHaveAttribute("value", "1");
+  await page.goto(`${entry.url}?path=${ALPHA.id}&decision=AL-02`);
+  await page.locator('input[name="decision"][value="open"]').check();
+  await expect.poll(async () => (await disk()).paths[ALPHA.id].decisions["AL-02"]).toBe("open");
+  await page.getByRole("link", { name: "Back to blocks", exact: true }).click();
+  await expect(steps).toHaveAttribute("max", String(checklist(ALPHA, { "AL-02": "open" }).length));
+  await expect(card.locator(".journey-meter-label").nth(1)).toContainText(`1 / ${checklist(ALPHA, { "AL-02": "open" }).length}`);
+  await page.goto(`${entry.url}?path=${ALPHA.id}&decision=AL-02`);
+  await page.locator('input[name="decision"][value="review"]').check();
+  await expect.poll(async () => (await disk()).paths[ALPHA.id].decisions["AL-02"]).toBe("review");
+  await page.getByRole("link", { name: "Back to blocks", exact: true }).click();
+  await expect(card.locator(".journey-meter-label").nth(1)).toHaveText("Configuration steps done");
+  await expect(steps).toHaveCount(0);
+  await expect(card.locator(".journey-meters > span").nth(1).locator(".journey-meter[aria-hidden=true]")).toBeVisible();
 });
 
 test("every block introduction opens without saving progress or showing author approvals", async ({ page }) => {

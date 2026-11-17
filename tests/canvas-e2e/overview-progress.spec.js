@@ -41,7 +41,9 @@ test("block overview resumes after a saved resolved answer", async ({ page }) =>
   await expect(card.locator(".journey-meter-label").first()).toContainText(`1 / ${total}`);
   const overviewMeter = card.getByRole("progressbar", { name: "Decision taken", exact: true });
   await expect(card.locator(".journey-meter-label").first()).toContainText("Decision taken");
-  await expect(card.locator(".journey-meter-label").nth(1)).toContainText("Configurations applied");
+  await expect(card.locator(".journey-meter-label").nth(1)).toHaveText("Configuration steps done");
+  await expect(card.getByRole("progressbar", { name: "Configuration steps done", exact: true })).toHaveCount(0);
+  await expect(card.locator(".journey-meters > span").nth(1).locator(".journey-meter[aria-hidden=true]")).toBeVisible();
   await expect(overviewMeter).toHaveAttribute("value", "1");
   await expect(overviewMeter).toHaveAttribute("max", String(total));
   await expect(overviewMeter).toHaveAttribute("aria-valuetext", `1 of ${total} decisions answered`);

@@ -3,7 +3,7 @@ import test from "node:test";
 import { fileURLToPath } from "node:url";
 import { loadContent } from "../../.github/extensions/governance-lab/content.mjs";
 import { createStore } from "../../.github/extensions/governance-lab/state.mjs";
-import { configurationChecklist, summary, totalConfigurationSteps, verificationChecklist } from "../../.github/extensions/governance-lab/ui/model.js";
+import { configurationChecklist, summary, verificationChecklist } from "../../.github/extensions/governance-lab/ui/model.js";
 import { harness } from "./exercise-helpers.mjs";
 
 const content = await loadContent({ root: fileURLToPath(new URL("./fixtures/content-format/valid/", import.meta.url)) });
@@ -139,14 +139,12 @@ test("checklist mutations enforce identity, eligibility, revisions and serializa
   assert.match(results.find((item) => item.status === "rejected").reason.message, /another panel/);
 });
 
-test("Overview step total counts every authored recipe and additional step, independent of decisions", () => {
+test("configuration checklist counts selected recipes and independent additional steps", () => {
   const path = structuredClone(content.paths.find((item) => item.id === pathId));
   path.stages.configure.conclusion = "Review the fictional configuration.";
   path.stages.configure.additionalSteps = [
     { title: "Independent review", markdown: "1. Review this independent step." },
   ];
-  assert.equal(totalConfigurationSteps(path), 5);
-
   const noAnswers = { decisions: {}, exercises: {} };
   assert.equal(configurationChecklist(path, noAnswers).length, 2);
 
