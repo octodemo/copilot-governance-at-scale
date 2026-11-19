@@ -110,7 +110,6 @@ participant content availability, progress, or exports.
 - Check each stage does its job: Understand introduces the topic and trade-offs;
   Decisions connect enterprise needs to choices; Configure presents selected
   guidance and exercise recipes; Validation defines checks for exercises only.
-- Keep participant decision choices substantive and resolved.
 - Give every exercise matching validation with bounded expected results.
 - Preserve stable IDs and assess saved-progress implications.
 - Run full standalone validation and relevant tests; preview changed rendering.
