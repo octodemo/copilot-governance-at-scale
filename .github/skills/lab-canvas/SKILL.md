@@ -160,7 +160,7 @@ decisions, exercises, notes and history after confirmation, keeping a `.bak`
 backup and advancing the revision to reject stale writes. It does not reload
 content. Neither control nor endpoint is available outside dev mode.
 **Pick section** marks sourced elements with `data-source-*` attributes (dev mode only); picking opens a prompt dialog (cloned from a template only in dev mode) and pending requests stay in page memory in the bottom batch tray. Any successful send turns picking off.
-Sending posts `{requests:[{file,line,endLine,label?,prompt}]}` (1–20 requests) to `POST /api/dev/send-requests`.
+Sending posts `{requests:[{file,line,endLine,label?,prompt,contentVersion}]}` (1–20 requests) to `POST /api/dev/send-requests`.
 The server accepts only triples that exactly match a node in the loaded content for that block's own `.md` file, refuses stale files (409) and oversized text (413), and errors name the failing request.
 It submits one user turn immediately via `session.send` (default enqueue mode, no composer confirmation): per request a Markdown link `[file (Lx–y)](file#Lx-Ly)` followed by the prompt verbatim, joined by blank lines, with one deduplicated `selection` attachment per section.
 It returns 501 without that hook and 502 when the host call fails, and a failed **Send now** keeps the request in the batch; picking must never save progress or trigger navigation inside the content area.

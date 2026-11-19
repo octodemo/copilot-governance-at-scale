@@ -4,7 +4,7 @@ The normative schema and examples live in
 [CONTENT-FORMAT.md](../../../docs/CONTENT-FORMAT.md) and
 [the block template](../../../docs/templates/workshop-block.md). The executable
 contract is `lib/workshop-content.mjs`; selection resolution is shared with
-browser-safe `lib/workshop-resolver.mjs`. Do not maintain a second grammar here.
+browser-safe `lib/workshop-resolver.mjs`.
 
 ## Choose the correct source
 
@@ -44,8 +44,7 @@ node --test tests/content-validation/content-format.test.mjs
 The CLI is read-only and offline. It does not load a canvas/SDK or participant
 state. Full mode checks all active sources and cross-block identities.
 Single-file mode validates that file and the whole shared policy catalog,
-without requiring manifest membership or checking other blocks. Use full mode
-before integration.
+without requiring manifest membership or checking other blocks.
 
 Exit codes: **0** valid; **1** invalid content/schema/JSON; **2** invocation/read
 failure. Diagnostics include repository-relative file, 1-based line, code,
@@ -61,8 +60,9 @@ node scripts/catalog-coverage.mjs
 Read-only and offline. For each active block it lists the active CSV rows
 assigned to that block and whether content traces them as **configured**,
 **decision only**, or **not yet**. Rows whose `notes` start with
-`Not applicable in the lab:` are labeled so. The report always exits 0 when it
-can read the files: gaps are planning notes during drafting, not errors.
+`Not applicable in the lab:` are labeled so. The report always exits 0 when
+content loading and planning-catalog indexing succeed: gaps are planning notes
+during drafting, not errors.
 Coverage is traceability, not proof that the guidance is correct or approved.
 
 ## Repair pointers
@@ -106,16 +106,10 @@ participant content availability, progress, or exports.
 
 ## Completion checklist
 
-- Open and cite official sources for changed product claims; mark uncertainty.
-- Preserve human draft intent and explicitly report unmapped material.
 - Check answer → local recipe → shared policy references.
 - Check each stage does its job: Understand introduces the topic and trade-offs;
   Decisions connect enterprise needs to choices; Configure presents selected
   guidance and exercise recipes; Validation defines checks for exercises only.
-- Keep wording simple and human. Fix typos and grammar without rephrasing.
-- Run the coverage report and list remaining gaps gently.
-- Keep participant decision choices substantive and resolved.
 - Give every exercise matching validation with bounded expected results.
 - Preserve stable IDs and assess saved-progress implications.
-- Run full standalone validation and relevant tests; preview changed rendering.
 - Request human review separately; never approve content on an agent's behalf.
