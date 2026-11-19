@@ -106,7 +106,6 @@ participant content availability, progress, or exports.
 
 ## Completion checklist
 
-- Preserve human draft intent and explicitly report unmapped material.
 - Check answer → local recipe → shared policy references.
 - Check each stage does its job: Understand introduces the topic and trade-offs;
   Decisions connect enterprise needs to choices; Configure presents selected
