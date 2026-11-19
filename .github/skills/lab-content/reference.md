@@ -112,5 +112,4 @@ participant content availability, progress, or exports.
   guidance and exercise recipes; Validation defines checks for exercises only.
 - Give every exercise matching validation with bounded expected results.
 - Preserve stable IDs and assess saved-progress implications.
-- Run full standalone validation and relevant tests; preview changed rendering.
 - Request human review separately; never approve content on an agent's behalf.
