@@ -44,8 +44,7 @@ node --test tests/content-validation/content-format.test.mjs
 The CLI is read-only and offline. It does not load a canvas/SDK or participant
 state. Full mode checks all active sources and cross-block identities.
 Single-file mode validates that file and the whole shared policy catalog,
-without requiring manifest membership or checking other blocks. Use full mode
-before integration.
+without requiring manifest membership or checking other blocks.
 
 Exit codes: **0** valid; **1** invalid content/schema/JSON; **2** invocation/read
 failure. Diagnostics include repository-relative file, 1-based line, code,
