@@ -60,8 +60,9 @@ node scripts/catalog-coverage.mjs
 Read-only and offline. For each active block it lists the active CSV rows
 assigned to that block and whether content traces them as **configured**,
 **decision only**, or **not yet**. Rows whose `notes` start with
-`Not applicable in the lab:` are labeled so. The report always exits 0 when it
-can read the files: gaps are planning notes during drafting, not errors.
+`Not applicable in the lab:` are labeled so. The report always exits 0 when
+content loading and planning-catalog indexing succeed: gaps are planning notes
+during drafting, not errors.
 Coverage is traceability, not proof that the guidance is correct or approved.
 
 ## Repair pointers
