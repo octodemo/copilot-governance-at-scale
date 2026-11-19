@@ -110,7 +110,6 @@ participant content availability, progress, or exports.
 - Check each stage does its job: Understand introduces the topic and trade-offs;
   Decisions connect enterprise needs to choices; Configure presents selected
   guidance and exercise recipes; Validation defines checks for exercises only.
-- Run the coverage report and list remaining gaps gently.
 - Keep participant decision choices substantive and resolved.
 - Give every exercise matching validation with bounded expected results.
 - Preserve stable IDs and assess saved-progress implications.
