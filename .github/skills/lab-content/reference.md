@@ -4,7 +4,7 @@ The normative schema and examples live in
 [CONTENT-FORMAT.md](../../../docs/CONTENT-FORMAT.md) and
 [the block template](../../../docs/templates/workshop-block.md). The executable
 contract is `lib/workshop-content.mjs`; selection resolution is shared with
-browser-safe `lib/workshop-resolver.mjs`. Do not maintain a second grammar here.
+browser-safe `lib/workshop-resolver.mjs`.
 
 ## Choose the correct source
 
